@@ -1,7 +1,29 @@
 {
-"target": "es2016",
-"module": "commonjs",
-"strict": true,
-"esModuleInterop":true,
+//"target": "es2017",
+//"module": "es2022",
+
+ "ts-node": {
+    // these options are overrides used only by ts-node
+    "compilerOptions": {
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators":true,
+      "target":"es2017",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "allowJs": true,
+      "strict": true,
+    },
+ },
+"compilerOptions": {
+    "experimentalDecorators":true,
+    "target": "es6",
+    "module": "commonjs",
+    "esModuleInterop": false,
+    "moduleResolution": "node",
+    "allowJs": true,
+    "strict": true,
+  },
+"esModuleInterop":false,
 "skipLibCheck": true,
-"forceConsistentCasingInFileNames": true}
+"forceConsistentCasingInFileNames": true
+}
