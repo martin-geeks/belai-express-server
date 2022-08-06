@@ -4,8 +4,14 @@
   "description": "The server side for belai express",
   "main": "index.js",
   "scripts": {
+    "start":"node dist/index.js",
+    "postinstall":"tsc && mv -i -v public dist/ && rm -v -rf src",
+    "watch-node":"nodemon dist/index.js",
+    "watch-ts":"tsc -w",
+    "deploy":"git add . && git commit -m Heroku && git push heroku master",
     "test": "nodemon index.js"
   },
+  "engines":{"node":"16.15.1"},
   "keywords": [
     "server",
     "commerce",

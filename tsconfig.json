@@ -22,6 +22,7 @@
     "moduleResolution": "node",
     "allowJs": true,
     "strict": true,
+    "outDir":"dist"
   },
 "esModuleInterop":false,
 "skipLibCheck": true,
