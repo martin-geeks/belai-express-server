@@ -39,29 +39,6 @@ fs.writeFile('salt.json',JSON.stringify({salt:salt}),function(err :any) {
 });*/
 const port = process.env.PORT || 3001
 
-
-//console.log(token)
-
-const product: TypeProduct = {
-  name: 'iPhone X Silver',
-  amount: 'ZMW 999.50',
-  rating: 3,
-  photo: '',
-  model: 'X series',
-  brand: 'iPhone',
-  manufacturer: 'Apple Company',
-  variants: [{}],
-  description: 'Data Typed',
-  discount: 'K200',
-  product_id: '763367',
-  release: new Date(),
-  expire: new Date(),
-  addedDate: new Date(),
-  tags: ['iphone','mobile'],
-  category:{category:'Accessories', subcategory:'Mobile'}
-}
-
-
 app.get('*', function(req:Request, res:Response, next:any) {
   //console.log(req.path)
   return next();
@@ -75,19 +52,36 @@ app.get('/',(req: Request,res: Response)=>{
 	res.render('index.html')
 });
 app.get('/products',async (req: Request,res: Response)=>{
-  let products : TypeProduct[] = new Array();
-  for(let i=1; i<=10; i++){
-    products.push(product);
-  }
   orm.getProducts()
-  .then( (products:any ) => {
-    console.log(products)
+  .then( (products_arr: any) => {
+    const fn = [];
+    
+    for(let i=0; i<products_arr.length;i++){
+    
+    }
+    //console.log(fn)
+    res.json(products_arr);
   })
   .catch((err: Error) => {
     console.log('hhhhh',err,'hhhhiooop')
+    res.json({status:false,message:'Something went wrong'});
   });
   //console.log(products)
-  res.json(products);
+  //res.json(products);
+});
+app.get('/api/product',(req: Request,res: Response) => {
+  console.log(req.query)
+  //@ts-ignore
+  let product_id = req.query.product_id.toString();
+  
+  orm.getProduct(product_id)
+  .then((product: any) =>{
+  //console.log(product);
+  res.json({status:true,product: product});
+  })
+  .catch((err: Error)=>{
+    res.json(err);
+  });
 });
 app.post('/products',async (req: Request,res:Response) =>{
   console.log('Requested')
@@ -221,6 +215,7 @@ app.post('/update',(req: Request,res: Response) => {
   }
 
 });
+
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
 });

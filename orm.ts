@@ -12,7 +12,7 @@ const product: TypeProduct = {
   name: 'iPhone X Silver',
   amount: 'ZMW 999.50',
   rating: 3,
-  photo: 'hgggg',
+  photos: ['/photos/one.jpg','/photos/two.jpg'],
   model: 'X series',
   brand: 'iPhone',
   manufacturer: 'Apple Company',
@@ -20,9 +20,16 @@ const product: TypeProduct = {
   product_id: crypto.randomBytes(64).toString('hex'),
   description: 'Data Typed',
   discount: 'K200',
+  availability: true,
+  delivery:true,
+  specifications: [{'NETWORK':'GSM/HSPA'},{'LAUNCH':'September 2017'},{'DISPLAY':'TYPE=[Super Retina OLED, HDR10, Dolby Vision, 625 nits (HBM)]\nSIZE=(5.8 inches, 84.4 cm2 ~82.9% screen-to-body ratio),\n RESOLUTION=[1125 x 2436 pixels, 19.5:9 ratio (~458 ppi density)] \b \n PROTECTION=[Scratch-resistant glass, oleophobic coating ,Wide color gamut,3D Touch,True-tone]'},{'PLATFORM':'OS=[iOS 11.1.1, up to iOS 15.5, planned upgrade to iOS 16],CHIPSET=[Apple A11 Bionic (10 nm)] CPU=[Hexa-core 2.39 GHz (2x Monsoon + 4x Mistral)] GPU=[Apple GPU (three-core graphics)] '}],
+  shipping: [{location:'Lusaka',time:'1hour',cost:0}],
+  about: 'explicari nisl viderer ullamcorper hac ut purus aenean. libris aeque sumo autem usu pulvinar nascetur numquam nobis ludus noster nam postea sententiae. ',
+  locations:['Lusaka','Southern Province'],
   release: new Date(),
   expire: new Date(),
   addedDate: new Date(),
+  updatedAt: new Date(),
   tags: ['iphone','mobile'],
   category:{category:'Accessories', subcategory:'Mobile'}
 }
@@ -40,16 +47,14 @@ async function s(){
   main()
   .then(async (arr: any)=>{
   let p = new Product(product);
-  console.log(p)
-  console.log(p.name);
-  console.log(await p.save());
+  await p.save();
   //console.log(p.name)
   })
   .catch((err:Error) =>{
     
   });
 }
-s();
+
 async function addUser(userData:any){
   main()
   .then(async (client:any) => {
@@ -136,14 +141,6 @@ async function authUser(userData: any){
   });
   //let user = findByEmail()
 }
-const orm = {
-  user: User,
-  addUser : addUser,
-  authUser: authUser,
-  checkUser: checkUser,
-  updateUser: updateUser,
-  getProducts: getProducts
-}
 function updateUser(userId: string, data: any){
   
   return new Promise((resolve,reject)=>{
@@ -177,5 +174,31 @@ async function getProducts(){
       reject(err);
     });
   });
+}
+async function getProduct(product_id:string){
+  return new Promise((resolve,reject)=>{
+  main()
+  .then(async ()=>{
+    let product = await Product.findOne({product_id:product_id});
+     if(product){
+        resolve(product);
+     }else{
+       reject({status:false, message:'The item you are looking for is not available anymore'});
+     }
+  })
+  .catch((err: Error)=>{
+    console.log(err);
+  });
+});
+}
+
+const orm = {
+  user: User,
+  addUser : addUser,
+  authUser: authUser,
+  checkUser: checkUser,
+  updateUser: updateUser,
+  getProducts: getProducts,
+  getProduct: getProduct,
 }
 export default orm;
