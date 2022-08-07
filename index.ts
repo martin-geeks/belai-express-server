@@ -25,8 +25,9 @@ const app: Express = express();
 app.use(cors(corsOptions));
 
 app.use(session({secret:'test'}));
-//app.use('/', express.static(path.join(__dirname, '../build')));
-app.use(express.static('public'));
+app.use('/', express.static(path.join(__dirname, 'build')));
+//app.use(express.static('public'));
+//app.use(express.static('build'));
 app.set('view engine','ejs');
 app.use(bodyParser.urlencoded({
   extended: true
@@ -48,10 +49,12 @@ app.post('*',function(req: Request,res: Response,next: any){
   return next();
 });
 app.get('/',(req: Request,res: Response)=>{
-	
+	console.log(req)
 	res.render('index.html')
 });
 app.get('/products',async (req: Request,res: Response)=>{
+console.log(req.body)
+console.log(req.params)
   orm.getProducts()
   .then( (products_arr: any) => {
     const fn = [];
@@ -89,54 +92,116 @@ app.post('/products',async (req: Request,res:Response) =>{
 });
 app.post('/create-account',async (req: Request,res: Response) => {
   console.log('request received');
-  console.log(req.cookies)
+  
+
   if (req.body.firstTime) {
-  let OTP = Math.floor(100000 + Math.random() * 900000)
-  await sendVerificationCode(req.body.data.email,OTP);
-  res.cookie('belaiExpressVerify',{email:req.body.data.email,otp:OTP,step:1},{
+  let OTP = Math.floor(100000 + Math.random() * 900000);
+  console.log("VERIFICATION CODE: ",OTP)
+  const email = req.body.data;
+  console.log(email)
+   orm.checkUser({email:email.email})
+  .then(async (data:any)=>{
+      //await sendVerificationCode(req.body.data.email,OTP);
+      if(data.status !== true){
+         res.cookie('belaiExpressVerify',{email:req.body.data.email,otp:OTP,step:1},{
     maxAge: 86400 * 1000,
     httpOnly: true,
     secure: false
   });
-  res.json({status:true})
+          res.json({status:true})
+      } else {
+        res.json({status:false,message:'Email exists. Try another one'});
+      }
+     
+  })
+  .catch((err: Error)=>{
+    console.log(1)
+    res.json(err);
+  });
   } else {
-    const user = req.body.data;
-    console.log(user)
+    const user = req.body.fields;
+    let p = req.cookies['belaiExpressVerify']
     var token = crypto.randomBytes(64).toString('hex');
-    const userObject  = {
-      fullname: `${user.firstname} ${user.lastname}`,
-      username: user.username,
-      location: user.location,
-      email: user.username,
-      password: user.password
-    }
-    var addr = req.socket.remoteAddress || '';
-    try{
+    
+    let userExistence:any = await orm.checkUser({username:user['username']});
+    if(userExistence.status){
+      //console.log(userExistence)
+      res.json({status:false, message:'The username exists, try a another one'});
+    } else {
+      const userObject  = {
+        fullname: `${user.firstname} ${user.lastname}`,
+        firstname:user.firstname,
+        lastname:user.lastname,
+        username: user.username,
+        location:'Lusaka, Zambia',
+        email: user.username,
+        password: user.password
+      }
+      var addr = req.socket.remoteAddress || '';
+          try{
       let info = await ipinfoWrapper.lookupIp(addr.split(':')[1]);
       userObject.location = `${info.city}, ${info.country} [${info.countryCode}]`;
-        //console.log(userObject);
-        let status;
-        console.log(status)
-        if(status){
-          let add = await orm.addUser(userObject);
-            res.json({status: true,user:status})
-        } else {
-          
-          res.json({status: false})
-        }
-    } catch(err : any) {
-      console.log(err)
-      userObject.location = 'N/A';
-      res.json(err);
+         userObject.email = p['email'];
+         userObject.password = user['password'];
+            let u = await orm.addUser(userObject);
+            let user2 : any= await orm.getUser({username:userObject.username});
+              let userData:any = {status:true,email:user2.email,username:user2.username,userId:user2.userId,photo:user2.photo,fullname:`${user2.firstname} ${user2.lastname}`, verified:true}
+                res.cookie('belaiExpress',userData,{
+    maxAge: 86400 * 1000,
+    httpOnly: true,
+    secure: false
+    });
+                res.json(userData);
+          } catch(err : any) {
+            
+            userObject.location = 'N/A';
+            userObject.email = p['email'];
+            userObject.password = user['password'];
+            orm.addUser(userObject)
+            .then(async ()=>{
+            const user2: any = await orm.getUser({username:userObject.username});
+            
+              let userData = {status:true,email:user2.email,username:user2.username,userId:user2.userId,photo:user2.photo,fullname:`${user2.firstname} ${user2.lastname}`, verified:true}
+                res.cookie('belaiExpress',userData,{
+    maxAge: 86400 * 1000,
+    httpOnly: true,
+    secure: false
+    });
+                res.json(userData);
+              
+            })
+            . catch ((err: Error)=>{
+              console.log(444,err)
+              res.json(err)
+            })
+            /*
+            let user2: any = await orm.getUser({username:userObject.username});
+              let userData : any= {status:true,email:user2.email,username:user2.username,userId:user2.userId,photo:user2.photo,fullname:`${user2.firstname} ${user2.lastname}`, verified:true}
+                res.cookie('belaiExpress',userData,{
+    maxAge: 86400 * 1000,
+    httpOnly: true,
+    secure: false
+    });
+                res.json(userData);
+          */
+          }
+    
     }
     
+    
+
+    //console.log(userObject)
+    
+    
+
     //res.json({})
+    //res.json({status: true})
   }
 });
 app.get('/create-account',async (req:Request,res:Response) =>{
   let prevStep = req.cookies['belaiExpressVerify'];
   if(prevStep){
-    console.log(prevStep)
+    console.log(prevStep);
     res.json(prevStep);
   } else {
     res.json({email: null,step:0})
@@ -145,7 +210,6 @@ app.get('/create-account',async (req:Request,res:Response) =>{
 });
 app.post('/verify-account',async (req: Request,res: Response) => {
   const user= req.cookies['belaiExpressVerify'];
-  console.log(req.cookies)
   const receivedOTP = Number(req.body.data) 
   if(user.otp === receivedOTP) {
     res.cookie('belaiExpressVerify',{email:user.email,otp:user.otp,step:2, verified:true},{
@@ -161,7 +225,6 @@ app.post('/verify-account',async (req: Request,res: Response) => {
   
 });
 app.post('/login',async (req : Request,res: Response) =>{
-  console.log(req.body)
   orm.authUser(req.body).
   then((userAuth: any) =>{
   //@ts-ignore

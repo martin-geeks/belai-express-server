@@ -55,7 +55,9 @@ async function s(){
   });
 }
 
-async function addUser(userData:any){
+function addUser(userData:any){
+  return new Promise((resolve,reject)=>{
+    
   main()
   .then(async (client:any) => {
    
@@ -65,27 +67,51 @@ async function addUser(userData:any){
        await user.save();
        const  session = new Session({action:'Created an account',user:user.userId});
        await session.save();
-      client.close();
+      
   })
-  .catch ((err: any) => {
-    
+  .catch ((err: Error) => {
+    console.log(1111,err)
+    reject({status:false, message:err.message});
+  });
   });
 }
 function checkUser(userData:any){
   return new Promise((resolve,reject) => {
     main()
     .then(async (client:any) => {
-      let users = await User.find(userData);
-      console.log(users)
-      let user = await User.findByEmail('martintembo.zm@gmail.com');
+      console.log(userData)
+      let user = await User.findOne(userData);
       console.log(user)
+      if(user != null){
+        resolve({status: true, message:'Email exists'});
+      } else {
+        resolve({status:false,message:'User exists not'});
+      }
+     
     })
     .catch((err: any)=>{
-      
+      console.log(err)
+      reject({status: false, message:'Connection error'});
     });
   });
 }
-//checkUser({username:'martintembo'});
+function getUser(data:any){
+  return new Promise((resolve,reject)=>{
+    main()
+    .then(async () =>{
+      let user = await User.findOne(data);
+      if(user !== null){
+        resolve({status:true,user:user});
+      } else {
+        reject({status:false, message:'User not found'});
+      }
+    })
+    .catch((err: Error)=>{
+      reject({status:false, message:err.message});
+    });
+  });
+}
+//getUser({username:'rose-mary'});
 async function authUser(userData: any){
   let keys = Object.keys(userData);
   return new Promise((resolve,reject)=>{
@@ -198,6 +224,7 @@ const orm = {
   authUser: authUser,
   checkUser: checkUser,
   updateUser: updateUser,
+  getUser: getUser,
   getProducts: getProducts,
   getProduct: getProduct,
 }
