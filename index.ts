@@ -26,8 +26,8 @@ app.use(cors(corsOptions));
 
 app.use(session({secret:'test'}));
 app.use('/', express.static(path.join(__dirname, 'build')));
-app.use(express.static('public'));
-//app.use(express.static('build'));
+//app.use(express.static('public'));
+app.use(express.static('build'));
 app.set('view engine','ejs');
 app.use(bodyParser.urlencoded({
   extended: true
@@ -49,8 +49,8 @@ app.post('*',function(req: Request,res: Response,next: any){
   return next();
 });
 app.get('/',(req: Request,res: Response)=>{
-	console.log('run')
-	res.render('index.html')
+	console.log('running')
+	res.render('./build/index.html');
 });
 app.get('/products',async (req: Request,res: Response)=>{
 console.log(req.body)
