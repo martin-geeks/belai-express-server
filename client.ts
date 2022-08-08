@@ -1,5 +1,17 @@
-import mongoose from 'mongoose';
-
+//import mongoose from 'mongoose';
+const mongoose = require('mongoose');
+//import ServerApiVersion require('mongodb');
+interface ConnectOptions {
+  useNewUrlParser: boolean;
+  useUnifiedTopology: boolean;
+}
+const options=  {
+  useUnifiedTopology:true,
+  useNewUrlParser:true,
+  user:'belaiexpress',
+  pass:'belai'
+  //serverApi: ServerApiVersion.v1
+}
 /*async function  main(){
   return new Promise((resolve,reject) =>{
   mongoose.connect('mongodb://localhost:27017/belai-express').then(()=>{
@@ -14,16 +26,13 @@ import mongoose from 'mongoose';
   });
 }*/
 async function  main(){
-  return new Promise((resolve,reject) =>{
-  mongoose.connect('mongodb+srv://martintembo1:$9th_April_2017&@cluster0.x6koa.mongodb.net/?retryWrites=true&w=majority',{useNewUrlParser: true, useUnifiedTopology: true}, () => console.log(" Mongoose is connected")).then(()=>{
-  
-    
-    resolve(mongoose);
-}).catch((err:any) => {
-  console.log(err);
-  reject(err)
+  return new Promise(async (resolve,reject) =>{
+  await mongoose.connect('mongodb+srv://cluster0.x6koa.mongodb.net/belaiexpress?retryWrites=true&w=majority',options, (err:any) => {
+    console.log(err)
+    console.log('connected')
+    resolve(true);
+  });
   
 });
-  });
 }
 export {main}

@@ -39,23 +39,30 @@ import { main } from './client';
 
 const bcrypt = require('bcryptjs');
 const salt = '$2a$10$vISXPe5uiGy5KPg8EYLux.'
-
+//mongoose.set('bufferCommands', false);
 const User = mongoose.model('User',userSchema);
 const Session = mongoose.model('Session',sessionSchema);
 const Product = model<TypeProduct>('Product',productSchema);
 async function s(){
   main()
   .then(async (arr: any)=>{
+    console.log('yes')
+     // await mongoose.connect('mongodb+srv://martintembo1:$9th_April_2017&@cluster0.x6koa.mongodb.net/belaiexpress?retryWrites=true&w=majority',() => {
+    //console.log('connected')
+  //});
   let p = new Product(product);
+  p.save().then(()=>{
+    console.log('done')
+  }).catch((err: Error)=>{
+    console.log(err)
+  });
   await p.save();
-  //console.log(p.name)
+  console.log(p.name)
   })
   .catch((err:Error) =>{
     
   });
 }
-s();
-s();
 function addUser(userData:any){
   return new Promise((resolve,reject)=>{
     
