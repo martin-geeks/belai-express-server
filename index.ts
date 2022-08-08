@@ -26,7 +26,7 @@ app.use(cors(corsOptions));
 
 app.use(session({secret:'test'}));
 app.use('/', express.static(path.join(__dirname, 'build')));
-//app.use(express.static('public'));
+app.use(express.static('public'));
 //app.use(express.static('build'));
 app.set('view engine','ejs');
 app.use(bodyParser.urlencoded({
@@ -41,7 +41,7 @@ fs.writeFile('salt.json',JSON.stringify({salt:salt}),function(err :any) {
 const port = process.env.PORT || 3001
 
 app.get('*', function(req:Request, res:Response, next:any) {
-  //console.log(req.path)
+  console.log('running')
   return next();
 });
 app.post('*',function(req: Request,res: Response,next: any){
@@ -49,7 +49,7 @@ app.post('*',function(req: Request,res: Response,next: any){
   return next();
 });
 app.get('/',(req: Request,res: Response)=>{
-	console.log(req)
+	console.log('run')
 	res.render('index.html')
 });
 app.get('/products',async (req: Request,res: Response)=>{
