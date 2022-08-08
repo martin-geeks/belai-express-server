@@ -12,7 +12,7 @@
     "test": "nodemon index.js",
     "dev":"nodemon"
   },
-  "engines":{"node":"16.15.1"},
+  "engines":{},
   "keywords": [
     "server",
     "commerce",
