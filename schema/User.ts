@@ -1,7 +1,7 @@
 import { Schema } from 'mongoose';
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const salt = require('../salt.json');
+const salt ='$2a$10$vISXPe5uiGy5KPg8EYLux.';
 export interface TypeUser {
   username: string;
   firstname: string;

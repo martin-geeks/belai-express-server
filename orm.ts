@@ -38,7 +38,7 @@ const product: TypeProduct = {
 import { main } from './client';
 
 const bcrypt = require('bcryptjs');
-const salt = require('./salt.json');
+const salt = '$2a$10$vISXPe5uiGy5KPg8EYLux.'
 
 const User = mongoose.model('User',userSchema);
 const Session = mongoose.model('Session',sessionSchema);
@@ -61,7 +61,7 @@ function addUser(userData:any){
   main()
   .then(async (client:any) => {
    
-     userData.password = bcrypt.hashSync(userData.password, salt.salt);
+     userData.password = bcrypt.hashSync(userData.password, salt);
      userData.userId = crypto.randomBytes(64).toString('hex');
        const user = new User(userData);
        await user.save();
