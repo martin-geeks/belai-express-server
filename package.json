@@ -4,9 +4,10 @@
   "description": "The server side for belai express",
   "main": "dist/index.js",
   "scripts": {
-    "start":"node dist/index.js",
+    "start":"node build/index.js",
     "build": "rimraf ./dist && tsc",
-    "postinstall":"tsc",
+    "tsc":"tsc",
+    "postinstall":"npm run tsc",
     "watch-node":"nodemon dist/index.js",
     "deploy":"git add . && git commit -m Heroku && git push heroku main",
     "test": "nodemon index.js",
