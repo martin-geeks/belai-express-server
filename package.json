@@ -4,7 +4,7 @@
   "description": "The server side for belai express",
   "main": "dist/index.js",
   "scripts": {
-    "start":"node build/index.js",
+    "start":"node dist/index.js",
    
     "tsc": "./node_modules/typescript/bin/tsc",
     
