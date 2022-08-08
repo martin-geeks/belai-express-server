@@ -54,7 +54,8 @@ async function s(){
     
   });
 }
-
+s();
+s();
 function addUser(userData:any){
   return new Promise((resolve,reject)=>{
     
