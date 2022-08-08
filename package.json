@@ -6,8 +6,8 @@
   "scripts": {
     "start":"node build/index.js",
     "build": "rimraf ./dist && tsc",
-    "tsc":"tsc",
-    "postinstall":"npx run tsc",
+    "tsc": "./node_modules/typescript/bin/tsc",
+    
     "watch-node":"nodemon dist/index.js",
     "deploy":"git add . && git commit -m Heroku && git push heroku main",
     "test": "nodemon index.js",
