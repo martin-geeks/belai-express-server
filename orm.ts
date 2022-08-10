@@ -42,6 +42,7 @@ const notification : TypeNotification = {
   notificationId: crypto.randomBytes(64).toString('hex'),
   urls: ['belai-express.com/trading','https://wwe.zeiro.com/businesses'],
   createdAt: new Date(),
+  sendAt: new Date();
   
 }
 
