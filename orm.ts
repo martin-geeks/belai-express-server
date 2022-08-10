@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import {model} from 'mongoose';
-import { userSchema, sessionSchema , productSchema} from './schema';
-import {TypeProduct} from './types/api';
+import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel} from './schema';
+import {TypeProduct,TypeNotification} from './types/api';
 const crypto = require('crypto');
 //import crypto from 'crypto';
 interface SessionType {
@@ -33,7 +33,17 @@ const product: TypeProduct = {
   tags: ['iphone','mobile'],
   category:{category:'Accessories', subcategory:'Mobile'}
 }
-
+const notification : TypeNotification = {
+  title: 'Thank you for Joining Belai-Express',
+  body: 'A big welcome to Belai Express and micro trading services ',
+  recipients: [],
+  receivedBy: [],
+  pictures: [],
+  notificationId: crypto.randomBytes(64).toString('hex'),
+  urls: ['belai-express.com/trading','https://wwe.zeiro.com/businesses'],
+  createdAt: new Date(),
+  
+}
 
 import { main } from './client';
 
@@ -43,6 +53,8 @@ const salt = '$2a$10$vISXPe5uiGy5KPg8EYLux.'
 const User = mongoose.model('User',userSchema);
 const Session = mongoose.model('Session',sessionSchema);
 const Product = model<TypeProduct>('Product',productSchema);
+const Notification = model<TypeNotification,NotificationModel>('Notification',notificationSchema)
+console.log(Notification)
 async function s(){
   main()
   .then(async (arr: any)=>{
@@ -225,7 +237,59 @@ async function getProduct(product_id:string){
   });
 });
 }
+function setNotification(new_notification: TypeNotification) {
+  return new Promise ((resolve, reject)=>{
+  main()
+  .then(async ()=>{
+    let my_notification = new Notification(notification);
+    await my_notification.save();
+    let noti = await Notification.findOne({notificationId: my_notification.notificationId});
+   if(noti !== null){
+     resolve({status: true,notification:noti});
+   } else {
+     reject({status:false, message:'Something went wrong, try saving or resending the notification'});
+   }
+  })
+  .catch((err: Error) =>{
+    console.log(err);
+    reject({status: false,msg:err.message, message: 'Wrong'});
+  });
+  });
+}
+type recipient = string | undefined;
+function getNotifications(recipient: any) {
+  return new Promise ((resolve, reject)=>{
+  main()
+  .then(async ()=>{
+    let notifications = await Notification.find();
+    if(recipient !== undefined) {
+      
+       resolve(notifications);
+      if(notifications !== []){
+     //resolve({status: true,notification:noti});
+      } else {
+     reject({status:false, message:'Something went wrong, try saving or resending the notification'});
+   }
+   } else {
+      
+    }
+  })
+  .catch((err: Error) =>{
+    console.log(err);
+    reject({status: false,msg:err.message, message: 'Wrong'});
+  });
+  });
+}
 
+/*
+setNotification(notification)
+.then ((notification:any) =>{
+  console.log(notification)
+})
+.catch((err: Error)=>{
+  console.log(err)
+});
+*/
 const orm = {
   user: User,
   addUser : addUser,
@@ -235,5 +299,7 @@ const orm = {
   getUser: getUser,
   getProducts: getProducts,
   getProduct: getProduct,
+  setNotification:setNotification,
+  getNotifications:getNotifications
 }
 export default orm;

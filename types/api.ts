@@ -34,4 +34,32 @@ export interface TypeProduct {
     updatedAt: Date;
     addedDate: Date;
 }
-
+export interface User {
+  firstname: string;
+  lastname: string;
+  username: string;
+  email: string;
+  phone? string;
+}
+export interface TypeNotification {
+  title:string,
+  body: string;
+  pictures: string[];
+  recipients: string[];
+  receivedBy: string[];
+  notificationId: string;
+  urls: string[];
+  createdAt: Date;
+  sendAt? Date | undefined;
+}
+export interface Notification {
+  title: string;
+  body: string;
+  pictures: string[];
+  urls: string[];
+  notificationId:string;
+  createdAt: Date;
+}
+export interface NotificationMethods {
+  notification(): Notification[];
+}

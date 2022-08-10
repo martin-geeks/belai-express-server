@@ -1,5 +1,5 @@
-//import mongoose from 'mongoose';
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+//const mongoose = require('mongoose');
 //import ServerApiVersion require('mongodb');
 interface ConnectOptions {
   useNewUrlParser: boolean;
@@ -12,6 +12,7 @@ const options=  {
   pass:'belai'
   //serverApi: ServerApiVersion.v1
 }
+//********FOR DEVELOPMENT MODE***********
 /*async function  main(){
   return new Promise((resolve,reject) =>{
   mongoose.connect('mongodb://localhost:27017/belai-express').then(()=>{
@@ -25,6 +26,7 @@ const options=  {
 });
   });
 }*/
+//*************FOR PRODUCTION***************
 async function  main(){
   return new Promise(async (resolve,reject) =>{
   await mongoose.connect('mongodb+srv://cluster0.x6koa.mongodb.net/belaiexpress?retryWrites=true&w=majority',options, (err:any) => {

@@ -1,5 +1,5 @@
 import {Express,Request,Response} from 'express';
-import {TypeProduct} from './types/api';
+import {TypeProduct,TypeNotification} from './types/api';
 import IPinfoWrapper,{IPinfo} from 'node-ipinfo';
 const ipinfoWrapper = new IPinfoWrapper('08f46b695f4d5e');
 
@@ -26,6 +26,11 @@ app.use(cors(corsOptions));
 
 app.use(session({secret:'test'}));
 app.use('/', express.static(path.join(__dirname, 'build')));
+ app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('/*', function (req, res) {
+   res.sendFile(path.join(__dirname, 'build', 'index.html'));
+ });
 //app.use(express.static('public'));
 app.use(express.static('build'));
 app.set('view engine','ejs');
@@ -40,14 +45,7 @@ fs.writeFile('salt.json',JSON.stringify({salt:salt}),function(err :any) {
 });*/
 const port = process.env.PORT || 3001
 
-app.get('*', function(req:Request, res:Response, next:any) {
-  console.log('running')
-  return next();
-});
-app.post('*',function(req: Request,res: Response,next: any){
-  //console.log(req.path);
-  return next();
-});
+
 app.get('/',(req: Request,res: Response)=>{
 	console.log('running')
 	res.render('./build/index.html');
@@ -101,7 +99,7 @@ app.post('/create-account',async (req: Request,res: Response) => {
   console.log(email)
    orm.checkUser({email:email.email})
   .then(async (data:any)=>{
-      //await sendVerificationCode(req.body.data.email,OTP);
+      await sendVerificationCode(req.body.data.email,OTP);
       if(data.status !== true){
          res.cookie('belaiExpressVerify',{email:req.body.data.email,otp:OTP,step:1},{
     maxAge: 86400 * 1000,
@@ -278,7 +276,23 @@ app.post('/update',(req: Request,res: Response) => {
   }
 
 });
-
+app.post('/api/notifications',(req: Request,res: Response) =>{
+  let notification = req.body.notification;
+  orm.setNotification(notification)
+  .then((send) =>{
+    console.log()
+    res.json(send);
+  })
+  .catch((err: Error) => res.json(err));
+});
+app.get('/api/notifications',(req: Request,res: Response) =>{
+  let recipient = undefined;
+  orm.getNotifications(recipient)
+  .then((notifications: any) =>{
+    res.json(notifications);
+  })
+  .catch((err: Error) => res.json(err));
+});
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
 });
