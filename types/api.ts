@@ -39,7 +39,7 @@ export interface User {
   lastname: string;
   username: string;
   email: string;
-  phone? string;
+  phone: string;
 }
 export interface TypeNotification {
   title:string,
@@ -50,7 +50,7 @@ export interface TypeNotification {
   notificationId: string;
   urls: string[];
   createdAt: Date;
-  sendAt? Date | undefined;
+  sendAt: Date | undefined;
 }
 export interface Notification {
   title: string;
