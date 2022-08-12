@@ -25,13 +25,7 @@ const app: Express = express();
 app.use(cors(corsOptions));
 
 app.use(session({secret:'test'}));
-app.use('/', express.static(path.join(__dirname, 'build')));
- app.use(express.static(path.join(__dirname, 'build')));
-
-app.get('/*', function (req, res) {
-   res.sendFile(path.join(__dirname, 'build', 'index.html'));
- });
-//app.use(express.static('public'));
+app.use('/', express.static(path.join(__dirname,'build')));
 app.use(express.static('build'));
 app.set('view engine','ejs');
 app.use(bodyParser.urlencoded({
@@ -39,17 +33,23 @@ app.use(bodyParser.urlencoded({
 }))
 app.use(bodyParser.json());
 app.use(cookieParser());
-/*var salt = bcrypt.genSaltSync(10);
-fs.writeFile('salt.json',JSON.stringify({salt:salt}),function(err :any) {
-  
-});*/
+
 const port = process.env.PORT || 3001
 
 
-app.get('/',(req: Request,res: Response)=>{
-	console.log('running')
-	res.render('./build/index.html');
+app.get('*', function(req:Request, res:Response, next:any) {
+  console.log(req.path)
+  return next();
 });
+app.post('*',function(req: Request,res: Response,next: any){
+  //console.log(req.path);
+  return next();
+});
+app.get('/',(req: Request,res: Response)=>{
+	
+	res.render('index');
+});
+
 app.get('/products',async (req: Request,res: Response)=>{
 console.log(req.body)
 console.log(req.params)
@@ -60,6 +60,7 @@ console.log(req.params)
     for(let i=0; i<products_arr.length;i++){
     
     }
+    console.log(products_arr)
     //console.log(fn)
     res.json(products_arr);
   })

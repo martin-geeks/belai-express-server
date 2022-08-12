@@ -1,10 +1,11 @@
-import mongoose from 'mongoose';
-//const mongoose = require('mongoose');
+//import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 //import ServerApiVersion require('mongodb');
 interface ConnectOptions {
   useNewUrlParser: boolean;
   useUnifiedTopology: boolean;
 }
+console.log(1111)
 const options=  {
   useUnifiedTopology:true,
   useNewUrlParser:true,
