@@ -1,22 +1,25 @@
 //import mongoose from 'mongoose';
 const mongoose = require('mongoose');
 //import ServerApiVersion require('mongodb');
+const dotenv =  require('dotenv');
+dotenv.config();
 interface ConnectOptions {
   useNewUrlParser: boolean;
   useUnifiedTopology: boolean;
 }
-console.log(1111)
 const options=  {
   useUnifiedTopology:true,
   useNewUrlParser:true,
-  user:'belaiexpress',
-  pass:'belai'
+  user: process.env.DATABASE_USER,
+  pass: process.env.DATABASE_PASSWORD
   //serverApi: ServerApiVersion.v1
 }
+const atlas = process.env.DATABASE_ATLAS_URL;
 //********FOR DEVELOPMENT MODE***********
-/*async function  main(){
+/*
+async function  main(){
   return new Promise((resolve,reject) =>{
-  mongoose.connect('mongodb://localhost:27017/belai-express').then(()=>{
+  mongoose.connect(process.env.DATABASE_URL).then(()=>{
   
     
     resolve(mongoose);
@@ -26,11 +29,13 @@ const options=  {
   
 });
   });
-}*/
+}
+*/
 //*************FOR PRODUCTION***************
+
 async function  main(){
   return new Promise(async (resolve,reject) =>{
-  await mongoose.connect('mongodb+srv://cluster0.x6koa.mongodb.net/belaiexpress?retryWrites=true&w=majority',options, (err:any) => {
+  await mongoose.connect(process.env.DATABASE_ATLAS_URL),options, (err:any) => {
     console.log(err)
     console.log('connected')
     resolve(true);
@@ -38,4 +43,5 @@ async function  main(){
   
 });
 }
+
 export {main}

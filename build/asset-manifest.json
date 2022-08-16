@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.a1635a29.css",
-    "main.js": "/static/js/main.8045edf4.js",
+    "main.js": "/static/js/main.a8060a2f.js",
     "static/js/787.810be3c4.chunk.js": "/static/js/787.810be3c4.chunk.js",
     "static/media/fa-duotone-900.svg": "/static/media/fa-duotone-900.2dfd02e5892eeb8fcc79.svg",
     "static/media/fa-light-300.svg": "/static/media/fa-light-300.3a84c8d1f836c51e069c.svg",
@@ -31,15 +31,16 @@
     "static/media/fa-brands-400.woff2": "/static/media/fa-brands-400.e7433cdfdc3e9a36da4e.woff2",
     "service-worker.js": "/service-worker.js",
     "static/media/iphonex.jpg": "/static/media/iphonex.ba6ef82a05605ae32f17.jpg",
+    "static/media/image2.jpg": "/static/media/image2.db331dddde96e878f505.jpg",
     "static/media/iphonex2.jpg": "/static/media/iphonex2.ea513c6e43fc591da2ec.jpg",
     "static/media/logo.png": "/static/media/logo.1d62a8fbc205e711b548.png",
     "index.html": "/index.html",
     "main.a1635a29.css.map": "/static/css/main.a1635a29.css.map",
-    "main.8045edf4.js.map": "/static/js/main.8045edf4.js.map",
+    "main.a8060a2f.js.map": "/static/js/main.a8060a2f.js.map",
     "787.810be3c4.chunk.js.map": "/static/js/787.810be3c4.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.a1635a29.css",
-    "static/js/main.8045edf4.js"
+    "static/js/main.a8060a2f.js"
   ]
 }

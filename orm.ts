@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import {model} from 'mongoose';
-import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel} from './schema';
-import {TypeProduct,TypeNotification} from './types/api';
+import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel,CartModel,cartSchema} from './schema';
+import {TypeProduct,TypeNotification,TypeCart} from './types/api';
 const crypto = require('crypto');
 //import crypto from 'crypto';
 interface SessionType {
@@ -9,29 +9,29 @@ interface SessionType {
   userId: string;
 }
 const product: TypeProduct = {
-  name: 'iPhone X Silver',
-  amount: 'ZMW 999.50',
-  rating: 3,
-  photos: ['/photos/one.jpg','/photos/two.jpg'],
-  model: 'X series',
-  brand: 'iPhone',
-  manufacturer: 'Apple Company',
+  name: 'Canvas',
+  amount: 'ZMW 349.50',
+  rating: 2,
+  photos: ['/photos/clothing.jpg','/photos/clothing2.jpg'],
+  model: 'x135',
+  brand: 'Adidas',
+  manufacturer: 'Adidas',
   variants: [{}],
   product_id: crypto.randomBytes(64).toString('hex'),
-  description: 'Data Typed',
-  discount: 'K200',
+  description: 'Old classic refurbished canvas for twenty first century',
+  discount: 'K50',
   availability: true,
   delivery:true,
-  specifications: [{'NETWORK':'GSM/HSPA'},{'LAUNCH':'September 2017'},{'DISPLAY':'TYPE=[Super Retina OLED, HDR10, Dolby Vision, 625 nits (HBM)]\nSIZE=(5.8 inches, 84.4 cm2 ~82.9% screen-to-body ratio),\n RESOLUTION=[1125 x 2436 pixels, 19.5:9 ratio (~458 ppi density)] \b \n PROTECTION=[Scratch-resistant glass, oleophobic coating ,Wide color gamut,3D Touch,True-tone]'},{'PLATFORM':'OS=[iOS 11.1.1, up to iOS 15.5, planned upgrade to iOS 16],CHIPSET=[Apple A11 Bionic (10 nm)] CPU=[Hexa-core 2.39 GHz (2x Monsoon + 4x Mistral)] GPU=[Apple GPU (three-core graphics)] '}],
+  specifications: [{'MODEL':'x15'},{'LAUNCH':'September 2021'},{'Waterproof':'YES'}],
   shipping: [{location:'Lusaka',time:'1hour',cost:0}],
   about: 'explicari nisl viderer ullamcorper hac ut purus aenean. libris aeque sumo autem usu pulvinar nascetur numquam nobis ludus noster nam postea sententiae. ',
-  locations:['Lusaka','Southern Province'],
+  locations:['Lusaka','Luapula'],
   release: new Date(),
   expire: new Date(),
   addedDate: new Date(),
   updatedAt: new Date(),
-  tags: ['iphone','mobile'],
-  category:{category:'Accessories', subcategory:'Mobile'}
+  tags: ['clothing','shoes','canvas'],
+  category:{category:'Clothing', subcategory:'Male'}
 }
 const notification : TypeNotification = {
   title: 'Thank you for Joining Belai-Express',
@@ -45,7 +45,11 @@ const notification : TypeNotification = {
   sendAt: new Date()
   
 }
-
+const myCart: TypeCart = {
+  userId: 'jsjsispapsbsbsjs',
+  products: [{count:15,productId:'jsksosbsbsisbsbbshs'}],
+  addedDate: new Date(),
+}
 import { main } from './client';
 
 const bcrypt = require('bcryptjs');
@@ -55,6 +59,7 @@ const User = mongoose.model('User',userSchema);
 const Session = mongoose.model('Session',sessionSchema);
 const Product = model<TypeProduct>('Product',productSchema);
 const Notification = model<TypeNotification,NotificationModel>('Notification',notificationSchema)
+const Cart = model<TypeCart,CartModel>('Cart',cartSchema)
 console.log(Notification)
 async function s(){
   main()
@@ -76,6 +81,7 @@ async function s(){
     
   });
 }
+
 function addUser(userData:any){
   return new Promise((resolve,reject)=>{
     
@@ -282,6 +288,42 @@ function getNotifications(recipient: any) {
   });
 }
 
+function setCart(cart: TypeCart){
+  return new Promise((resolve,reject) =>{
+    main()
+    .then(async ()=>{
+      const crt = new Cart(cart);
+      await crt.save();
+      resolve(true);
+    })
+    .catch(()=>{
+      
+    });
+  });
+}
+
+function getCart(){
+  return new Promise((resolve,reject) =>{
+    main()
+    .then(async ()=>{
+      const crt = await Cart;
+      console.log(crt)
+      resolve(true);
+    })
+    .catch(()=>{
+      
+    });
+  });
+}
+/*
+setCart(myCart)
+.then((state:any)=>{
+  
+})
+.catch((err: Error) =>{
+  
+})
+
 /*
 setNotification(notification)
 .then ((notification:any) =>{
@@ -301,6 +343,8 @@ const orm = {
   getProducts: getProducts,
   getProduct: getProduct,
   setNotification:setNotification,
-  getNotifications:getNotifications
+  getNotifications:getNotifications,
+  getCart: getCart,
+  setCart: setCart,
 }
 export default orm;

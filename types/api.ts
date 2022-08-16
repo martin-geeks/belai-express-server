@@ -34,6 +34,25 @@ export interface TypeProduct {
     updatedAt: Date;
     addedDate: Date;
 }
+interface TypeTwoCategory {
+  technology: TypeProduct[];
+  clothing: TypeProduct[];
+  food: TypeProduct[];
+  misc: TypeProduct[];
+}
+interface TypeTwoSubCategory {
+  adult: TypeProduct[];
+  kids: TypeProduct[];
+  male: TypeProduct[];
+  female: TypeProduct[];
+  mobile: TypeProduct[];
+  laptop: TypeProduct[];
+  variety: TypeProduct[];
+}
+export interface TypeFinalObject {
+  category: TypeTwoCategory;
+  sub: TypeTwoSubCategory;
+}
 export interface User {
   firstname: string;
   lastname: string;
@@ -62,4 +81,19 @@ export interface Notification {
 }
 export interface NotificationMethods {
   notification(): Notification[];
+}
+
+interface CartProduct {
+  count: number;
+  productId: string;
+}
+export interface TypeCart {
+  userId: string;
+  products: CartProduct[];
+  addedDate: Date;
+}
+export interface CartMethods {
+  add(): ()=> boolean;
+  remove(): ()=> boolean;
+  clear(): => boolean;
 }

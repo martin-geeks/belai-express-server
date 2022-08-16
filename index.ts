@@ -1,5 +1,5 @@
 import {Express,Request,Response} from 'express';
-import {TypeProduct,TypeNotification} from './types/api';
+import {TypeFinalObject,TypeProduct,TypeNotification} from './types/api';
 import IPinfoWrapper,{IPinfo} from 'node-ipinfo';
 const ipinfoWrapper = new IPinfoWrapper('08f46b695f4d5e');
 
@@ -51,8 +51,6 @@ app.get('/',(req: Request,res: Response)=>{
 });
 
 app.get('/products',async (req: Request,res: Response)=>{
-console.log(req.body)
-console.log(req.params)
   orm.getProducts()
   .then( (products_arr: any) => {
     const fn = [];
@@ -60,9 +58,44 @@ console.log(req.params)
     for(let i=0; i<products_arr.length;i++){
     
     }
-    console.log(products_arr)
+    //console.log(products_arr,'hi')
     //console.log(fn)
-    res.json(products_arr);
+    
+    var finalObject: TypeFinalObject = {
+      category: {
+        technology:[],
+        clothing:[],
+        food:[],
+        misc:[]
+      },
+     sub: {
+       mobile:[],
+       male:[],
+       female:[],
+       kids:[],
+       variety:[],
+       adult:[],
+       laptop:[],
+     }
+    }
+    products_arr.forEach((product:TypeProduct)=>{
+      if(product.category.category === 'Accessories') {
+        finalObject.category.technology.push(product);
+      }
+      if(product.category.category === 'Clothing') {
+        finalObject.category.clothing.push(product);
+      }
+      if(product.category.subcategory === 'Mobile'){
+        finalObject.sub.mobile.push(product);
+      }
+      if(product.category.subcategory === 'Male'){
+        finalObject.sub.male.push(product);
+      }
+      
+    });
+    //@ts-ignore
+    console.log(finalObject)
+    res.json(finalObject);
   })
   .catch((err: Error) => {
     console.log('hhhhh',err,'hhhhiooop')
@@ -79,6 +112,7 @@ app.get('/api/product',(req: Request,res: Response) => {
   orm.getProduct(product_id)
   .then((product: any) =>{
   //console.log(product);
+  
   res.json({status:true,product: product});
   })
   .catch((err: Error)=>{
