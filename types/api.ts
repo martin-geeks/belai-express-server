@@ -95,5 +95,5 @@ export interface TypeCart {
 export interface CartMethods {
   add(): ()=> boolean;
   remove(): ()=> boolean;
-  clear(): => boolean;
+  clear(): ()=> boolean;
 }
