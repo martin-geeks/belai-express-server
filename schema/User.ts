@@ -1,7 +1,8 @@
 import { Schema } from 'mongoose';
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const salt ='$2a$10$vISXPe5uiGy5KPg8EYLux.';
+const dotenv = require('dotenv');
+const salt = process.env.PASSWORD_SALT;
 export interface TypeUser {
   username: string;
   firstname: string;

@@ -1,7 +1,7 @@
 import {Express,Request,Response} from 'express';
 import {TypeFinalObject,TypeProduct,TypeNotification} from './types/api';
 import IPinfoWrapper,{IPinfo} from 'node-ipinfo';
-const ipinfoWrapper = new IPinfoWrapper('08f46b695f4d5e');
+
 
 const path = require('path');
 import  orm from './orm';
@@ -23,11 +23,13 @@ const corsOptions  = {
 }
 const app: Express = express();
 app.use(cors(corsOptions));
-
 app.use(session({secret:'test'}));
 app.use('/', express.static(path.join(__dirname,'build')));
 app.use(express.static('build'));
 app.set('view engine','ejs');
+
+const ipinfoWrapper = new IPinfoWrapper(process.env.IP_INFO_API_KEY || '');
+
 app.use(bodyParser.urlencoded({
   extended: true
 }))

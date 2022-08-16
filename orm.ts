@@ -3,6 +3,8 @@ import {model} from 'mongoose';
 import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel,CartModel,cartSchema} from './schema';
 import {TypeProduct,TypeNotification,TypeCart} from './types/api';
 const crypto = require('crypto');
+const dotenv =  require('dotenv');
+dotenv.config();
 //import crypto from 'crypto';
 interface SessionType {
   action: string;
@@ -53,7 +55,7 @@ const myCart: TypeCart = {
 import { main } from './client';
 
 const bcrypt = require('bcryptjs');
-const salt = '$2a$10$vISXPe5uiGy5KPg8EYLux.'
+const salt = process.env.PASSWORD_SALT;
 //mongoose.set('bufferCommands', false);
 const User = mongoose.model('User',userSchema);
 const Session = mongoose.model('Session',sessionSchema);
