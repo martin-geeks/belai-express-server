@@ -11,17 +11,17 @@ interface SessionType {
   userId: string;
 }
 const product: TypeProduct = {
-  name: 'Canvas',
-  amount: 'ZMW 349.50',
+  name: 'Iphone X Silver',
+  amount: 'ZMW 3009.50',
   rating: 2,
   photos: ['/photos/clothing.jpg','/photos/clothing2.jpg'],
   model: 'x135',
-  brand: 'Adidas',
-  manufacturer: 'Adidas',
+  brand: 'Apple',
+  manufacturer: 'Apple Inc.',
   variants: [{}],
   product_id: crypto.randomBytes(64).toString('hex'),
-  description: 'Old classic refurbished canvas for twenty first century',
-  discount: 'K50',
+  description: 'Best Phone on the market',
+  discount: 'K800',
   availability: true,
   delivery:true,
   specifications: [{'MODEL':'x15'},{'LAUNCH':'September 2021'},{'Waterproof':'YES'}],
@@ -32,8 +32,8 @@ const product: TypeProduct = {
   expire: new Date(),
   addedDate: new Date(),
   updatedAt: new Date(),
-  tags: ['clothing','shoes','canvas'],
-  category:{category:'Clothing', subcategory:'Male'}
+  tags: ['phone','mobile','tech'],
+  category:{category:'Accessories', subcategory:'Mobile'}
 }
 const notification : TypeNotification = {
   title: 'Thank you for Joining Belai-Express',
@@ -83,7 +83,6 @@ async function s(){
     
   });
 }
-
 function addUser(userData:any){
   return new Promise((resolve,reject)=>{
     
