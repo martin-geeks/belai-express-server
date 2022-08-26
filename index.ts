@@ -1,8 +1,9 @@
 import {Express,Request,Response} from 'express';
-import {TypeFinalObject,TypeProduct,TypeNotification} from './types/api';
+import * as apiManager from 'express';
+import {TypeFinalObject,TypeProduct,TypeNotification,TypeCart} from './types/api';
 import IPinfoWrapper,{IPinfo} from 'node-ipinfo';
 
-
+const router = apiManager.Router();
 const path = require('path');
 import  orm from './orm';
 import {sendVerificationCode} from './api';
@@ -15,6 +16,7 @@ const bodyParser = require('body-parser');
 const cors = require ('cors');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const fs = require('fs');
 
 dotenv.config();
@@ -27,7 +29,7 @@ app.use(session({secret:'test'}));
 app.use('/', express.static(path.join(__dirname,'build')));
 app.use(express.static('build'));
 app.set('view engine','ejs');
-
+app.use('/api/v2',router);
 const ipinfoWrapper = new IPinfoWrapper(process.env.IP_INFO_API_KEY || '');
 
 app.use(bodyParser.urlencoded({
@@ -38,20 +40,22 @@ app.use(cookieParser());
 
 const port = process.env.PORT || 3001
 
+const generateAccessToken = (param:object) => {
+    return jwt.sign(param, process.env.TOKEN_SECRET, { expiresIn: '1800s'});
+}
 
 app.get('*', function(req:Request, res:Response, next:any) {
   console.log(req.path)
   return next();
 });
 app.post('*',function(req: Request,res: Response,next: any){
-  //console.log(req.path);
+  console.log(req.path);
   return next();
 });
 app.get('/',(req: Request,res: Response)=>{
 	
 	res.render('index');
 });
-
 app.get('/products',async (req: Request,res: Response)=>{
   orm.getProducts()
   .then( (products_arr: any) => {
@@ -95,8 +99,6 @@ app.get('/products',async (req: Request,res: Response)=>{
       }
       
     });
-    //@ts-ignore
-    console.log(finalObject)
     res.json(finalObject);
   })
   .catch((err: Error) => {
@@ -329,6 +331,58 @@ app.get('/api/notifications',(req: Request,res: Response) =>{
     res.json(notifications);
   })
   .catch((err: Error) => res.json(err));
+});
+app.get('/api/arrangement',(req: Request,res:Response) =>{orm.getArrangement().then((response:any)=> res.json(response)).catch((err: Error) => res.json(err));});
+app.post('/api/v2/cart',(req:Request,res: Response)=>{
+  if(req.cookies['belaiExpress']){
+    const userId = req.cookies['belaiExpress']['userId'];
+    if(req.body['userId'] === userId ) {
+      const productId = req.body.productId;
+      const count = req.body.count;
+      orm.setCart({userId:userId,products:[{productId,count:count}],addedDate: new Date()})
+      .then((response:any) =>{
+        //console.log(status);
+        res.json(response);
+      })
+      .catch((err:Error)=>{
+        console.log(err)
+        res.json({status:false,message:err.message});
+      })
+    } else {
+      console.log(false)
+    }
+  }
+  const myCart: TypeCart = {
+  userId: 'jsjsispapsbsbsjs',
+  products: [{count:15,productId:'jsksosbsbsisbsbbshs'}],
+  addedDate: new Date(),
+}
+//res.json({})
+});
+app.get('/api/v2/cart',(req: Request,res: Response) =>{
+  const token = generateAccessToken({test:true});
+  if(req.headers.authorization == req.cookies['belaiExpress']['userId']) {
+    orm.getCart(req.cookies['belaiExpress']['userId'])
+    .then((cartList:any)=>{
+      res.json(cartList)
+    })
+    .catch((err:Error)=>{
+      res.json(err);
+    });
+  }
+  /*orm.getCart({})
+  .then((cartItems:any) => {
+    //console.log(cartItems)
+  })
+  .catch((err: Error)=>{
+    //console.log(err)
+  });
+  */
+  //res.json(token);
+});
+app.get('/access-token',(req: Request,res: Response)=>{
+ 
+  res.json({jwt:111})
 });
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);

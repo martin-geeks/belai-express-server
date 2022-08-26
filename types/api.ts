@@ -97,3 +97,15 @@ export interface CartMethods {
   remove(): ()=> boolean;
   clear(): ()=> boolean;
 }
+
+export interface TypeCategoryArrangement {
+  editor: string;
+  editorId: string;
+  arrangement: TypeCategory[];
+  date: Date;
+}
+export interface CategoryArrangementMethods {
+  arrange(): ()=> boolean;
+  rearrange(): ()=> boolean;
+  resetArrangement(): ()=> boolean;
+}

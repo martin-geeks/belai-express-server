@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import {model} from 'mongoose';
-import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel,CartModel,cartSchema} from './schema';
-import {TypeProduct,TypeNotification,TypeCart} from './types/api';
+import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel,CartModel,cartSchema,CategoryArrangementModel,categoryArrangementSchema} from './schema';
+import {TypeProduct,TypeNotification,TypeCart,TypeCategoryArrangement,TypeCategory} from './types/api';
 const crypto = require('crypto');
 const dotenv =  require('dotenv');
 dotenv.config();
@@ -62,8 +62,9 @@ const Session = mongoose.model('Session',sessionSchema);
 const Product = model<TypeProduct>('Product',productSchema);
 const Notification = model<TypeNotification,NotificationModel>('Notification',notificationSchema)
 const Cart = model<TypeCart,CartModel>('Cart',cartSchema)
+const categoryArrangement = model<TypeCategoryArrangement>('CategoryArrangement',categoryArrangementSchema);
 console.log(Notification)
-async function s(){
+async function demoProduct(){
   main()
   .then(async (arr: any)=>{
     console.log('yes')
@@ -245,6 +246,39 @@ async function getProduct(product_id:string){
   });
 });
 }
+async function setArrangement(editor:string,editorId:string,arrangement: TypeCategory[]) {
+  return new Promise((resolve,reject)=>{
+    main().then(()=>{
+      let my_arrangement = new categoryArrangement({editor:editor, editorId:editorId,arrangement:arrangement,date: new Date()});
+      my_arrangement.save();
+      resolve({status: true,arrangement:my_arrangement});
+    }).catch((err:Error)=>{
+      reject({status:false, message:err.message});
+    });
+  });
+}
+//setArrangement('Martin Tembo','pwjshsu+@+$+#+8+h',['Clothing','Technology','Food','Misc']);
+function getArrangement(){
+  return new Promise((resolve,reject)=>{
+    main().then(async ()=>{
+      let arrangement = await categoryArrangement.find();
+      resolve({status:true, arrangement:arrangement});
+    }).catch((err:Error)=>{
+      reject({status:false, message:err.message});
+    });
+  });
+}
+/*
+//*******TEST FUNCTION FOR FETCHING Category Arrangement********
+getArrangement()
+.then((response:any)=>{
+  console.log(Object.getOwnPropertyNames(response.arrangement));
+  console.log(response.arrangement.reverse()[0]);
+})
+.catch((err: Error) =>{
+  console.log(err)
+});
+*/
 function setNotification(new_notification: TypeNotification) {
   return new Promise ((resolve, reject)=>{
   main()
@@ -288,31 +322,77 @@ function getNotifications(recipient: any) {
   });
   });
 }
-
 function setCart(cart: TypeCart){
   return new Promise((resolve,reject) =>{
     main()
     .then(async ()=>{
-      const crt = new Cart(cart);
-      await crt.save();
-      resolve(true);
-    })
-    .catch(()=>{
       
+      
+      const existingItems = await Cart.findOne({userId:cart.userId});
+      
+      //await crt.save();
+      if(existingItems === null) {
+        const crt = new Cart(cart);
+        await crt.save();
+        return 0;
+      } else {
+       let check2 = existingItems.products.filter((product)=> product.productId === cart.products[0].productId);
+      console.log(check2)
+     if(check2.length === 0) {
+       existingItems.products.push(cart.products[0]);
+       //console.log(existingItems)
+       await existingItems.save();
+       console.log(existingItems)
+       let data = await getCart(cart.userId);
+       console.log(data)
+       resolve(data);
+     } else {
+       reject({status:false, message:'exists'})
+     }
+      
+      }
+    })
+    .catch((err:Error)=>{
+      reject({status:false,message:err.message});
     });
   });
 }
-
-function getCart(){
+function getCart(params:any){
   return new Promise((resolve,reject) =>{
     main()
     .then(async ()=>{
-      const crt = await Cart;
-      console.log(crt)
-      resolve(true);
+      const crt = await Cart.findOne({userId:params})
+      if(crt){
+        if(crt.products.length > 0){
+          //Executed when the cart list of a specific user has been found with products
+          var myCartList:any= [];
+          var amount: number = 0;
+          //console.log(crt.products)
+          for(let i=0; i < crt.products.length; i++){
+            //console.log(crt.products[0])
+            let fetchedProduct = await getProduct(crt.products[i]['productId']);
+            myCartList.push(fetchedProduct);
+         
+          }
+          for(let i=0; i<myCartList.length; i++){
+             amount += parseFloat(myCartList[i]['amount'].split(' ')[1]);
+          }
+          console.log(amount)
+          resolve({status:true,cart:crt.products,products:myCartList,amount: amount})
+        } else {
+          //Executed when the fetched product is no longer available
+          reject({status:false,message:'There is nothing in the cart at the moment'});
+        }
+      } else {
+        //Executed when the user is not found in the cart collection [table] in the database.
+        //This may mean that the user has not added anything in the cart via rhe client side.
+        reject({status:false, message:'Something went or you may not have added anything in the cart.'});
+      }
     })
-    .catch(()=>{
-      
+    .catch((err:Error)=>{
+      //This part is executed when there is an error with the system in making requests to the database
+      //See originalMessage for actual error other than the message property of the rejected object.
+      reject({status:false,message:'Something went on the server or try again.', originalMessage:err.message});
     });
   });
 }
@@ -347,5 +427,7 @@ const orm = {
   getNotifications:getNotifications,
   getCart: getCart,
   setCart: setCart,
+  getArrangement:getArrangement,
+  setArrangement:setArrangement,
 }
 export default orm;
