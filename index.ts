@@ -108,6 +108,44 @@ app.get('/products',async (req: Request,res: Response)=>{
   //console.log(products)
   //res.json(products);
 });
+app.get('/products/specific',async (req: Request,res: Response)=>{
+  
+  const client_products = req.query['products'];
+  let products = [];
+  let amount = 0;
+  if(req.cookies['belaiExpress']){
+  let cartList = await orm.getCart(req.cookies['belaiExpress']['userId']);
+  console.log(cartList)
+  //@ts-ignore
+  for(let i=0; i<client_products.length;i++){
+    //@ts-ignore
+    products.push(await(orm.getProduct(client_products[i].toString())));
+  }
+  for(let i=0; i<products.length;i++) {
+    //@ts-ignore
+    amount += parseFloat(products[i]['amount'].split(' ')[1])
+  }
+  //console.log(amount)
+  //orm.getProduct()
+  if(products.length > 0){
+    res.json({status:true,products:products,amount: amount,count:products.length});
+  } else {
+    res.json({status:false, message:'The products you added may not be available anymore.'});
+  }
+} else {
+  let products = []
+  //@ts-ignore
+  for(let i=0; i<client_products.length;i++){
+    //@ts-ignore
+    products.push(await(orm.getProduct(client_products[i].toString())));
+  }
+  if(products.length > 0){
+    res.json({status:true,products:products,count:products.length})
+  } else{
+  res.json({status:false, message:'The products you added may not be available anymore.'});
+  }
+}
+});
 app.get('/api/product',(req: Request,res: Response) => {
   console.log(req.query)
   //@ts-ignore
@@ -332,8 +370,8 @@ app.get('/api/notifications',(req: Request,res: Response) =>{
   })
   .catch((err: Error) => res.json(err));
 });
-app.get('/api/arrangement',(req: Request,res:Response) =>{orm.getArrangement().then((response:any)=> res.json(response)).catch((err: Error) => res.json(err));});
-app.post('/api/v2/cart',(req:Request,res: Response)=>{
+app.get('/arrangement',(req: Request,res:Response) =>{orm.getArrangement().then((response:any)=> res.json(response)).catch((err: Error) => res.json(err));});
+app.post('/cart',(req:Request,res: Response)=>{
   if(req.cookies['belaiExpress']){
     const userId = req.cookies['belaiExpress']['userId'];
     if(req.body['userId'] === userId ) {
@@ -359,9 +397,9 @@ app.post('/api/v2/cart',(req:Request,res: Response)=>{
 }
 //res.json({})
 });
-app.get('/api/v2/cart',(req: Request,res: Response) =>{
+app.get('/cart',(req: Request,res: Response) =>{
   const token = generateAccessToken({test:true});
-  if(req.headers.authorization == req.cookies['belaiExpress']['userId']) {
+  if(req.param('userId') == req.cookies['belaiExpress']['userId']) {
     orm.getCart(req.cookies['belaiExpress']['userId'])
     .then((cartList:any)=>{
       res.json(cartList)
@@ -379,6 +417,10 @@ app.get('/api/v2/cart',(req: Request,res: Response) =>{
   });
   */
   //res.json(token);
+});
+app.delete('/cart',(req: Request,res: Response)=>{
+  
+  res.json({});
 });
 app.get('/access-token',(req: Request,res: Response)=>{
  

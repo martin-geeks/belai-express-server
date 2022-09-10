@@ -29,9 +29,10 @@ async function  main(){
   
 });
   });
-}*/
-
+}
+*/
 //*************FOR PRODUCTION***************
+
 async function  main(){
   return new Promise(async (resolve,reject) =>{
   await mongoose.connect(process.env.DATABASE_ATLAS_URL,options, (err:any) => {

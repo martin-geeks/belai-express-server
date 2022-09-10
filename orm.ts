@@ -364,20 +364,30 @@ function getCart(params:any){
       const crt = await Cart.findOne({userId:params})
       if(crt){
         if(crt.products.length > 0){
-          //Executed when the cart list of a specific user has been found with products
+          //Executed when the cart list of a specific user has been found with products;
+          console.log(crt)
           var myCartList:any= [];
           var amount: number = 0;
           //console.log(crt.products)
           for(let i=0; i < crt.products.length; i++){
             //console.log(crt.products[0])
             let fetchedProduct = await getProduct(crt.products[i]['productId']);
+            
             myCartList.push(fetchedProduct);
          
           }
+          /*for(let i=0; i<crt.products.length;i++) {
+            for(let k=0; i<myCartList.products.length;i++){
+              if(crt.products[i]['productId']  === myCartList[i]['productId']) {
+                myCartList[i]['count'] = crt.products[i]['count'];
+              }
+            }
+          }*/
           for(let i=0; i<myCartList.length; i++){
              amount += parseFloat(myCartList[i]['amount'].split(' ')[1]);
+             
           }
-          console.log(amount)
+          console.log(myCartList[0])
           resolve({status:true,cart:crt.products,products:myCartList,amount: amount})
         } else {
           //Executed when the fetched product is no longer available
