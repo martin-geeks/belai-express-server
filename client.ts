@@ -16,7 +16,7 @@ const options=  {
 }
 const atlas = process.env.DATABASE_ATLAS_URL;
 //********FOR DEVELOPMENT MODE***********
-/*
+
 async function  main(){
   return new Promise((resolve,reject) =>{
   mongoose.connect(process.env.DATABASE_URL).then(()=>{
@@ -30,9 +30,9 @@ async function  main(){
 });
   });
 }
-*/
-//*************FOR PRODUCTION***************
 
+//*************FOR PRODUCTION***************
+/*
 async function  main(){
   return new Promise(async (resolve,reject) =>{
   await mongoose.connect(process.env.DATABASE_ATLAS_URL,options, (err:any) => {
@@ -43,5 +43,5 @@ async function  main(){
   
 });
 }
-
+*/
 export {main}

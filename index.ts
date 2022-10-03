@@ -21,15 +21,16 @@ const fs = require('fs');
 
 dotenv.config();
 const corsOptions  = {
-  credentials: true
+  credentials: true,
 }
 const app: Express = express();
 app.use(cors(corsOptions));
 app.use(session({secret:'test'}));
 app.use('/', express.static(path.join(__dirname,'build')));
 app.use(express.static('build'));
+app.use(express.static('assets'));
 app.set('view engine','ejs');
-app.use('/api/v2',router);
+app.use('/api/v1',router);
 const ipinfoWrapper = new IPinfoWrapper(process.env.IP_INFO_API_KEY || '');
 
 app.use(bodyParser.urlencoded({
@@ -40,15 +41,40 @@ app.use(cookieParser());
 
 const port = process.env.PORT || 3001
 
-const generateAccessToken = (param:object) => {
-    return jwt.sign(param, process.env.TOKEN_SECRET, { expiresIn: '1800s'});
+const generateAccessToken = (param:object,expire: string) => {
+    return jwt.sign(param, process.env.TOKEN_SECRET, { expiresIn: expire});
 }
+function authenticateToken(req:Request,res:Response,next:any){
+    
+    //@ts-ignore
+    const token = req.headers['authorization'].split(' ')[1]
+    //console.log(verifyAccessToken(token))
+    if(token === null) return res.status(401);
+    jwt.verify(token, process.env.TOKEN_SECRET,(err: any, user: any) => {
+    console.log(err,user)
 
+    if (err) return res.status(403).json({originalMessage:err.message, message:'Token Error'});
+    //@ts-ignore
+    req.userId = user.userId;
+    //console.log(req.cookies)
+   //const savedToken = req.cookies[] 
+    return next()
+   /*if((username === user['username']) && (password === user['password'])) {
+       console.log('DONE AUTHENTICATION')
+       return next()
+   } else {
+       return res.status(401).json({status:false, message:'AUTHENTICATION FAILED'})
+   }
+    */
+  })
+    
+}
 app.get('*', function(req:Request, res:Response, next:any) {
   console.log(req.path)
   return next();
 });
 app.post('*',function(req: Request,res: Response,next: any){
+    //console.log(req)
   console.log(req.path);
   return next();
 });
@@ -56,7 +82,7 @@ app.get('/',(req: Request,res: Response)=>{
 	
 	res.render('index');
 });
-app.get('/products',async (req: Request,res: Response)=>{
+router.get('/products',async (req: Request,res: Response)=>{
   orm.getProducts()
   .then( (products_arr: any) => {
     const fn = [];
@@ -300,6 +326,10 @@ app.post('/verify-account',async (req: Request,res: Response) => {
   
 });
 app.post('/login',async (req : Request,res: Response) =>{
+    
+    console.log(req.body)
+    
+    
   orm.authUser(req.body).
   then((userAuth: any) =>{
   //@ts-ignore
@@ -312,18 +342,21 @@ app.post('/login',async (req : Request,res: Response) =>{
     httpOnly: true,
     secure: false
     });
-    res.json(userData);
+    const responseData = {username:userData.username,fullname:userData.fullname,email:userData.email,photo:userData.photo,token:generateAccessToken({userId:userData.userId},'1d')}
+    res.status(200).json(responseData);
   }
   else {
     console.log(userAuth)
-    res.json(userAuth)
+    res.status(404).json(userAuth)
   }
   })
   .catch((err: Error)=>{
     console.log(err)
-    res.json(err);
+    res.status(401).json(err);
   });
+  
   //res.json({status:false});
+  
 });
 app.post('/update',(req: Request,res: Response) => {
   console.log(req.body)
@@ -371,15 +404,19 @@ app.get('/api/notifications',(req: Request,res: Response) =>{
   .catch((err: Error) => res.json(err));
 });
 app.get('/arrangement',(req: Request,res:Response) =>{orm.getArrangement().then((response:any)=> res.json(response)).catch((err: Error) => res.json(err));});
-app.post('/cart',(req:Request,res: Response)=>{
-  if(req.cookies['belaiExpress']){
-    const userId = req.cookies['belaiExpress']['userId'];
-    if(req.body['userId'] === userId ) {
+app.post('/cart',authenticateToken,(req:Request,res: Response)=>{
+    //@ts-ignore
+    console.log({userId:req.userId, product:req.body,count:req.body.count})
+    console.log(req.cookies)
+    //const userId = req.cookies['belaiExpress']['userId'];
+    //@ts-ignore
+    if(req.userId) {
       const productId = req.body.productId;
       const count = req.body.count;
-      orm.setCart({userId:userId,products:[{productId,count:count}],addedDate: new Date()})
+      //@ts-ignore
+      orm.setCart({userId:req.userId,products:[{productId,count:count}],addedDate: new Date()})
       .then((response:any) =>{
-        //console.log(status);
+        console.log('success');
         res.json(response);
       })
       .catch((err:Error)=>{
@@ -387,24 +424,24 @@ app.post('/cart',(req:Request,res: Response)=>{
         res.json({status:false,message:err.message});
       })
     } else {
-      console.log(false)
+      console.log('Something Went Wrong');
+      res.status(401).send('An error Occurred');
     }
-  }
-  const myCart: TypeCart = {
-  userId: 'jsjsispapsbsbsjs',
-  products: [{count:15,productId:'jsksosbsbsisbsbbshs'}],
-  addedDate: new Date(),
-}
-//res.json({})
+  
+
 });
-app.get('/cart',(req: Request,res: Response) =>{
-  const token = generateAccessToken({test:true});
-  if(req.param('userId') == req.cookies['belaiExpress']['userId']) {
-    orm.getCart(req.cookies['belaiExpress']['userId'])
+app.get('/cart',authenticateToken,(req: Request,res: Response) =>{
+  const token = generateAccessToken({test:true},'10s');
+  //@ts-ignore
+  if(req.userId) {
+      //@ts-ignore
+    orm.getCart(req.userId)
     .then((cartList:any)=>{
+        //console.log(cartList)
       res.json(cartList)
     })
     .catch((err:Error)=>{
+      console.log(err)
       res.json(err);
     });
   }
@@ -418,9 +455,19 @@ app.get('/cart',(req: Request,res: Response) =>{
   */
   //res.json(token);
 });
-app.delete('/cart',(req: Request,res: Response)=>{
+app.delete('/cart',authenticateToken,(req: Request,res: Response)=>{
+    console.log(req.body.productId)
+    //console.log(req.userId)
+  console.log('success')
+  //@ts-ignore
+  orm.deleteCart({userId:req.userId,productId:req.body.productId})
+  .then((data:any)=>{
+      res.json(data)
+  })
+  .catch((err:Error)=>{
+      res.status(404).json(err);
+  })
   
-  res.json({});
 });
 app.get('/access-token',(req: Request,res: Response)=>{
  

@@ -406,6 +406,37 @@ function getCart(params:any){
     });
   });
 }
+interface DeleteCart {
+    userId: string;
+    productId: string;
+}
+function deleteCart(payload: DeleteCart) {
+    
+    return new Promise(async (resolve,reject)=>{
+        await main()
+        //console.log(payload)
+        const cart = await Cart.findOne({userId:payload.userId});
+        if(cart) {
+            const products = cart.products.filter((product:any,index:number) => product.productId !== payload.productId );
+            //console.log('New Array',products)
+            const updatedCart = await Cart.updateOne({userId:payload.userId,products:products});
+            if(updatedCart.acknowledged) {
+                console.log('Cart Updated');
+                addSession({action:`You removed a product of id ${payload.productId} from the cart list`,userId:payload.userId});
+                resolve({status:true, message:'The cart was updated'});
+            } else {
+                addSession({action:`You attempted to remove a product of id ${payload.productId} from the cart list`,userId:payload.userId});
+                reject({status:false,message:'Could not update'});
+            }
+            
+        } else {
+            //console.log(cart)
+            addSession({action:`You attempted to remove a product of id ${payload.productId} from the cart list`,userId:payload.userId});
+            reject({status:false,message:'You have no items in cart'});
+        }
+    });
+}
+
 /*
 setCart(myCart)
 .then((state:any)=>{
@@ -437,6 +468,7 @@ const orm = {
   getNotifications:getNotifications,
   getCart: getCart,
   setCart: setCart,
+  deleteCart: deleteCart,
   getArrangement:getArrangement,
   setArrangement:setArrangement,
 }
