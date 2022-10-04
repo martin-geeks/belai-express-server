@@ -48,19 +48,19 @@ function authenticateToken(req:Request,res:Response,next:any){
     
     //@ts-ignore
     const token = req.headers['authorization'].split(' ')[1]
-    //console.log(verifyAccessToken(token))
+    ////(verifyAccessToken(token))
     if(token === null) return res.status(401);
     jwt.verify(token, process.env.TOKEN_SECRET,(err: any, user: any) => {
-    console.log(err,user)
+    //(err,user)
 
     if (err) return res.status(403).json({originalMessage:err.message, message:'Token Error'});
     //@ts-ignore
     req.userId = user.userId;
-    //console.log(req.cookies)
+    ////(req.cookies)
    //const savedToken = req.cookies[] 
     return next()
    /*if((username === user['username']) && (password === user['password'])) {
-       console.log('DONE AUTHENTICATION')
+       //('DONE AUTHENTICATION')
        return next()
    } else {
        return res.status(401).json({status:false, message:'AUTHENTICATION FAILED'})
@@ -70,12 +70,12 @@ function authenticateToken(req:Request,res:Response,next:any){
     
 }
 app.get('*', function(req:Request, res:Response, next:any) {
-  console.log(req.path)
+  console.log(req.method,':',req.path)
   return next();
 });
 app.post('*',function(req: Request,res: Response,next: any){
-    //console.log(req)
-  console.log(req.path);
+    ////(req)
+  console.log(req.method,':',req.path);
   return next();
 });
 app.get('/',(req: Request,res: Response)=>{
@@ -90,8 +90,8 @@ router.get('/products',async (req: Request,res: Response)=>{
     for(let i=0; i<products_arr.length;i++){
     
     }
-    //console.log(products_arr,'hi')
-    //console.log(fn)
+    ////(products_arr,'hi')
+    ////(fn)
     
     var finalObject: TypeFinalObject = {
       category: {
@@ -128,10 +128,10 @@ router.get('/products',async (req: Request,res: Response)=>{
     res.json(finalObject);
   })
   .catch((err: Error) => {
-    console.log('hhhhh',err,'hhhhiooop')
+    //('hhhhh',err,'hhhhiooop')
     res.json({status:false,message:'Something went wrong'});
   });
-  //console.log(products)
+  ////(products)
   //res.json(products);
 });
 app.get('/products/specific',async (req: Request,res: Response)=>{
@@ -141,7 +141,7 @@ app.get('/products/specific',async (req: Request,res: Response)=>{
   let amount = 0;
   if(req.cookies['belaiExpress']){
   let cartList = await orm.getCart(req.cookies['belaiExpress']['userId']);
-  console.log(cartList)
+  //(cartList)
   //@ts-ignore
   for(let i=0; i<client_products.length;i++){
     //@ts-ignore
@@ -151,7 +151,7 @@ app.get('/products/specific',async (req: Request,res: Response)=>{
     //@ts-ignore
     amount += parseFloat(products[i]['amount'].split(' ')[1])
   }
-  //console.log(amount)
+  ////(amount)
   //orm.getProduct()
   if(products.length > 0){
     res.json({status:true,products:products,amount: amount,count:products.length});
@@ -173,13 +173,13 @@ app.get('/products/specific',async (req: Request,res: Response)=>{
 }
 });
 app.get('/api/product',(req: Request,res: Response) => {
-  console.log(req.query)
+  //(req.query)
   //@ts-ignore
   let product_id = req.query.product_id.toString();
   
   orm.getProduct(product_id)
   .then((product: any) =>{
-  //console.log(product);
+  ////(product);
   
   res.json({status:true,product: product});
   })
@@ -188,18 +188,18 @@ app.get('/api/product',(req: Request,res: Response) => {
   });
 });
 app.post('/products',async (req: Request,res:Response) =>{
-  console.log('Requested')
+  //('Requested')
   res.json({})
 });
 app.post('/create-account',async (req: Request,res: Response) => {
-  console.log('request received');
+  //('request received');
   
 
   if (req.body.firstTime) {
   let OTP = Math.floor(100000 + Math.random() * 900000);
-  console.log("VERIFICATION CODE: ",OTP)
+  //("VERIFICATION CODE: ",OTP)
   const email = req.body.data;
-  console.log(email)
+  //(email)
    orm.checkUser({email:email.email})
   .then(async (data:any)=>{
       await sendVerificationCode(req.body.data.email,OTP);
@@ -216,7 +216,7 @@ app.post('/create-account',async (req: Request,res: Response) => {
      
   })
   .catch((err: Error)=>{
-    console.log(1)
+    //(1)
     res.json(err);
   });
   } else {
@@ -226,7 +226,7 @@ app.post('/create-account',async (req: Request,res: Response) => {
     
     let userExistence:any = await orm.checkUser({username:user['username']});
     if(userExistence.status){
-      //console.log(userExistence)
+      ////(userExistence)
       res.json({status:false, message:'The username exists, try a another one'});
     } else {
       const userObject  = {
@@ -272,7 +272,7 @@ app.post('/create-account',async (req: Request,res: Response) => {
               
             })
             . catch ((err: Error)=>{
-              console.log(444,err)
+              //(444,err)
               res.json(err)
             })
             /*
@@ -291,7 +291,7 @@ app.post('/create-account',async (req: Request,res: Response) => {
     
     
 
-    //console.log(userObject)
+    ////(userObject)
     
     
 
@@ -302,7 +302,7 @@ app.post('/create-account',async (req: Request,res: Response) => {
 app.get('/create-account',async (req:Request,res:Response) =>{
   let prevStep = req.cookies['belaiExpressVerify'];
   if(prevStep){
-    console.log(prevStep);
+    //(prevStep);
     res.json(prevStep);
   } else {
     res.json({email: null,step:0})
@@ -327,7 +327,7 @@ app.post('/verify-account',async (req: Request,res: Response) => {
 });
 app.post('/login',async (req : Request,res: Response) =>{
     
-    console.log(req.body)
+    //(req.body)
     
     
   orm.authUser(req.body).
@@ -346,12 +346,12 @@ app.post('/login',async (req : Request,res: Response) =>{
     res.status(200).json(responseData);
   }
   else {
-    console.log(userAuth)
+    //(userAuth)
     res.status(404).json(userAuth)
   }
   })
   .catch((err: Error)=>{
-    console.log(err)
+    //(err)
     res.status(401).json(err);
   });
   
@@ -359,7 +359,7 @@ app.post('/login',async (req : Request,res: Response) =>{
   
 });
 app.post('/update',(req: Request,res: Response) => {
-  console.log(req.body)
+  //(req.body)
   
   if(req.body.userId === req.cookies['belaiExpress'].userId){
     orm.updateUser(req.cookies['belaiExpress'].userId,req.body)
@@ -373,14 +373,14 @@ app.post('/update',(req: Request,res: Response) => {
     secure: false
     });
     
-      console.log(user,"gffddg");
+      //(user,"gffddg");
       res.json(userData);
     } else {
       res.json({status:false, message:'Something went wrong, Try again later'});
     }
     })
     .catch((err: Error)=>{
-      console.log(err,"yggfff");
+      //(err,"yggfff");
         res.json({status: false,message:err.message});
     });
   }
@@ -390,7 +390,7 @@ app.post('/api/notifications',(req: Request,res: Response) =>{
   let notification = req.body.notification;
   orm.setNotification(notification)
   .then((send) =>{
-    console.log()
+    //()
     res.json(send);
   })
   .catch((err: Error) => res.json(err));
@@ -406,8 +406,8 @@ app.get('/api/notifications',(req: Request,res: Response) =>{
 app.get('/arrangement',(req: Request,res:Response) =>{orm.getArrangement().then((response:any)=> res.json(response)).catch((err: Error) => res.json(err));});
 app.post('/cart',authenticateToken,(req:Request,res: Response)=>{
     //@ts-ignore
-    console.log({userId:req.userId, product:req.body,count:req.body.count})
-    console.log(req.cookies)
+    //({userId:req.userId, product:req.body,count:req.body.count})
+    //(req.cookies)
     //const userId = req.cookies['belaiExpress']['userId'];
     //@ts-ignore
     if(req.userId) {
@@ -416,15 +416,15 @@ app.post('/cart',authenticateToken,(req:Request,res: Response)=>{
       //@ts-ignore
       orm.setCart({userId:req.userId,products:[{productId,count:count}],addedDate: new Date()})
       .then((response:any) =>{
-        console.log('success');
+        //('success');
         res.json(response);
       })
       .catch((err:Error)=>{
-        console.log(err)
+        //(err)
         res.json({status:false,message:err.message});
       })
     } else {
-      console.log('Something Went Wrong');
+      //('Something Went Wrong');
       res.status(401).send('An error Occurred');
     }
   
@@ -437,28 +437,19 @@ app.get('/cart',authenticateToken,(req: Request,res: Response) =>{
       //@ts-ignore
     orm.getCart(req.userId)
     .then((cartList:any)=>{
-        //console.log(cartList)
+       
       res.json(cartList)
     })
     .catch((err:Error)=>{
-      console.log(err)
+      //(err)
       res.json(err);
     });
   }
-  /*orm.getCart({})
-  .then((cartItems:any) => {
-    //console.log(cartItems)
-  })
-  .catch((err: Error)=>{
-    //console.log(err)
-  });
-  */
-  //res.json(token);
 });
 app.delete('/cart',authenticateToken,(req: Request,res: Response)=>{
-    console.log(req.body.productId)
-    //console.log(req.userId)
-  console.log('success')
+    //(req.body.productId)
+    ////(req.userId)
+  //('success')
   //@ts-ignore
   orm.deleteCart({userId:req.userId,productId:req.body.productId})
   .then((data:any)=>{
@@ -469,6 +460,60 @@ app.delete('/cart',authenticateToken,(req: Request,res: Response)=>{
   })
   
 });
+app.post('/reviews',authenticateToken,(req: Request,res: Response)=>{
+    //(req.body)
+    //@ts-ignore
+    orm.setReview({userId:req.userId,product:req.body.product,review:req.body.review,rating:req.body.rating,date: new Date()})
+    .then((response:any)=>{
+        res.json(response);
+    })
+    .catch((err:Error)=>{
+        res.status(404).send();
+    });
+});
+app.post('/reviews/anonymous',(req: Request,res: Response)=>{
+    //(req.body)
+    //@ts-ignore
+    orm.setReview({userId:'anonymous',product:req.body.product,review:req.body.review,rating:req.body.rating,date: new Date()})
+    .then((response:any)=>{
+        res.json(response);
+    })
+    .catch((err:Error)=>{
+        res.status(404).send();
+    });
+});
+app.get('/reviews',(req: Request,res: Response)=>{
+    //@ts-ignore
+    orm.getReview()
+    .then((response:any)=>{
+        res.json(response);
+    })
+    .catch((err:Error)=>{
+        res.status(404).send();
+    });
+});
+app.get('/reviews-by-id',(req: Request,res: Response)=>{
+    orm.getReviewById(req.query)
+    .then((response:any)=>{
+        //(response)
+        res.json(response);
+    })
+    .catch((err:Error)=>{
+        res.status(404).send();
+    });
+});
+app.delete('/reviews',authenticateToken,(req: Request,res: Response)=>{
+    //(req.body)
+    //@ts-ignore
+    orm.setReview({userId:req.userId,product:req.body.product,review:req.body.review,rating:req.body.rating,date: new Date()})
+    .then((response:any)=>{
+        res.json(response);
+    })
+    .catch((err:Error)=>{
+        res.status(404).send();
+    });
+});
+
 app.get('/access-token',(req: Request,res: Response)=>{
  
   res.json({jwt:111})

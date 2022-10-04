@@ -109,3 +109,11 @@ export interface CategoryArrangementMethods {
   rearrange(): ()=> boolean;
   resetArrangement(): ()=> boolean;
 }
+export interface Review {
+    reviewId: string;
+    userId:string;
+    product:string;
+    review:string;
+    rating:number;
+    date: Date;
+}

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import {model} from 'mongoose';
-import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel,CartModel,cartSchema,CategoryArrangementModel,categoryArrangementSchema} from './schema';
-import {TypeProduct,TypeNotification,TypeCart,TypeCategoryArrangement,TypeCategory} from './types/api';
+import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel,CartModel,cartSchema,CategoryArrangementModel,categoryArrangementSchema, reviewSchema,ReviewModel} from './schema';
+import {TypeProduct,TypeNotification,TypeCart,TypeCategoryArrangement,TypeCategory, Review as TypeReview} from './types/api';
 const crypto = require('crypto');
 const dotenv =  require('dotenv');
 dotenv.config();
@@ -62,23 +62,24 @@ const Session = mongoose.model('Session',sessionSchema);
 const Product = model<TypeProduct>('Product',productSchema);
 const Notification = model<TypeNotification,NotificationModel>('Notification',notificationSchema)
 const Cart = model<TypeCart,CartModel>('Cart',cartSchema)
+const Review = model<TypeReview, ReviewModel>('Review',reviewSchema);
 const categoryArrangement = model<TypeCategoryArrangement>('CategoryArrangement',categoryArrangementSchema);
-console.log(Notification)
+//(Notification)
 async function demoProduct(){
   main()
   .then(async (arr: any)=>{
-    console.log('yes')
+    //('yes')
      // await mongoose.connect('mongodb+srv://martintembo1:$9th_April_2017&@cluster0.x6koa.mongodb.net/belaiexpress?retryWrites=true&w=majority',() => {
-    //console.log('connected')
+    ////('connected')
   //});
   let p = new Product(product);
   p.save().then(()=>{
-    console.log('done')
+    //('done')
   }).catch((err: Error)=>{
-    console.log(err)
+    //(err)
   });
   await p.save();
-  console.log(p.name)
+  //(p.name)
   })
   .catch((err:Error) =>{
     
@@ -91,7 +92,12 @@ function addUser(userData:any){
   .then(async (client:any) => {
    
      userData.password = bcrypt.hashSync(userData.password, salt);
-     userData.userId = crypto.randomBytes(64).toString('hex');
+     if(userData.userId) {
+         
+     } else {
+         userData.userData.userId = crypto.randomBytes(64).toString('hex');
+     }
+         
        const user = new User(userData);
        await user.save();
        const  session = new Session({action:'Created an account',user:user.userId});
@@ -99,18 +105,51 @@ function addUser(userData:any){
       
   })
   .catch ((err: Error) => {
-    console.log(1111,err)
+    //(1111,err)
     reject({status:false, message:err.message});
   });
   });
 }
+function setupOnce() {
+    checkUser({userId:'anonymous'})
+    .then((state:any)=>{
+         if(!state.status) {
+             addUser({
+  "username": "anonymous",
+  "phone": "null",
+  "email": "anonymous@belai-express.com",
+  "location": "N/A",
+  "photo": "/assets/images/anonymous.jpg",
+  "userId": "anonymous",
+  "password": "203019",
+  "date": new Date(),
+  "firstname": "Anonymous",
+  "lastname": "User"
+})
+             .then((resp :any)=>{
+                 //('Setup Complete')
+             })
+             .catch((err:Error)=>{
+                 //('Could not setup')
+                 //(err)
+                 
+             })
+         } else {
+             //('Setup Already')
+         }
+    })
+    .catch((err: Error)=>{
+        //('Something went wrong while setting up');
+    });
+}
+setupOnce();
 function checkUser(userData:any){
   return new Promise((resolve,reject) => {
     main()
     .then(async (client:any) => {
-      console.log(userData)
+      //(userData)
       let user = await User.findOne(userData);
-      console.log(user)
+      //(user)
       if(user != null){
         resolve({status: true, message:'Email exists'});
       } else {
@@ -119,7 +158,7 @@ function checkUser(userData:any){
      
     })
     .catch((err: any)=>{
-      console.log(err)
+      //(err)
       reject({status: false, message:'Connection error'});
     });
   });
@@ -153,15 +192,15 @@ async function authUser(userData: any){
         if(bcrypt.compareSync(userData.password,user.password)){
           await addSession({userId:user.userId, action:'Logged in'})
            return resolve({status:true,user});
-          //console.log('Access Granted');
+          ////('Access Granted');
         } else {
           await addSession({userId:user.userId, action:'Tried to login but password was incorrect'})
            return reject({status:false, message:'Wrong password', password:false, username:true});
-          //console.log('wrong password')
+          ////('wrong password')
         }
       } else {
         
-        console.log('User not found');
+        //('User not found');
         return reject({status:false, message:'Username not found'});
       }
       //return 'Username'
@@ -172,16 +211,16 @@ async function authUser(userData: any){
              if(bcrypt.compareSync(userData.password,user.password)){
           await addSession({userId:user.userId, action:'Logged in'})
            return resolve({status:true,user});
-          console.log('Access Granted');
+          //('Access Granted');
         } else {
           await addSession({userId:user.userId, action:'Tried to login but password was incorrect'})
            return reject({status:false, message:'Wrong password',password:false, email:true});
-          //console.log('wrong password')
+          ////('wrong password')
         }
-        console.log('user found')
+        //('user found')
       } else {
         return reject({status:false, message:'Email not found in our system'})
-        //console.log('User not found')
+        ////('User not found')
       }
       return 'Email'
     }
@@ -190,7 +229,7 @@ async function authUser(userData: any){
   
   })
   .catch((err:any)=>{
-    console.log(err)
+    //(err)
     reject({status:false, message:'Unknown error'});
   });
   });
@@ -242,7 +281,7 @@ async function getProduct(product_id:string){
      }
   })
   .catch((err: Error)=>{
-    console.log(err);
+    //(err);
   });
 });
 }
@@ -272,11 +311,11 @@ function getArrangement(){
 //*******TEST FUNCTION FOR FETCHING Category Arrangement********
 getArrangement()
 .then((response:any)=>{
-  console.log(Object.getOwnPropertyNames(response.arrangement));
-  console.log(response.arrangement.reverse()[0]);
+  //(Object.getOwnPropertyNames(response.arrangement));
+  //(response.arrangement.reverse()[0]);
 })
 .catch((err: Error) =>{
-  console.log(err)
+  //(err)
 });
 */
 function setNotification(new_notification: TypeNotification) {
@@ -293,7 +332,7 @@ function setNotification(new_notification: TypeNotification) {
    }
   })
   .catch((err: Error) =>{
-    console.log(err);
+    //(err);
     reject({status: false,msg:err.message, message: 'Wrong'});
   });
   });
@@ -317,7 +356,7 @@ function getNotifications(recipient: any) {
     }
   })
   .catch((err: Error) =>{
-    console.log(err);
+    //(err);
     reject({status: false,msg:err.message, message: 'Wrong'});
   });
   });
@@ -337,14 +376,14 @@ function setCart(cart: TypeCart){
         return 0;
       } else {
        let check2 = existingItems.products.filter((product)=> product.productId === cart.products[0].productId);
-      console.log(check2)
+      //(check2)
      if(check2.length === 0) {
        existingItems.products.push(cart.products[0]);
-       //console.log(existingItems)
+       ////(existingItems)
        await existingItems.save();
-       console.log(existingItems)
+       //(existingItems)
        let data = await getCart(cart.userId);
-       console.log(data)
+       //(data)
        resolve(data);
      } else {
        reject({status:false, message:'exists'})
@@ -365,12 +404,12 @@ function getCart(params:any){
       if(crt){
         if(crt.products.length > 0){
           //Executed when the cart list of a specific user has been found with products;
-          console.log(crt)
+          //(crt)
           var myCartList:any= [];
           var amount: number = 0;
-          //console.log(crt.products)
+          ////(crt.products)
           for(let i=0; i < crt.products.length; i++){
-            //console.log(crt.products[0])
+            ////(crt.products[0])
             let fetchedProduct = await getProduct(crt.products[i]['productId']);
             
             myCartList.push(fetchedProduct);
@@ -387,7 +426,7 @@ function getCart(params:any){
              amount += parseFloat(myCartList[i]['amount'].split(' ')[1]);
              
           }
-          console.log(myCartList[0])
+          //(myCartList[0])
           resolve({status:true,cart:crt.products,products:myCartList,amount: amount})
         } else {
           //Executed when the fetched product is no longer available
@@ -414,14 +453,14 @@ function deleteCart(payload: DeleteCart) {
     
     return new Promise(async (resolve,reject)=>{
         await main()
-        //console.log(payload)
+        ////(payload)
         const cart = await Cart.findOne({userId:payload.userId});
         if(cart) {
             const products = cart.products.filter((product:any,index:number) => product.productId !== payload.productId );
-            //console.log('New Array',products)
+            ////('New Array',products)
             const updatedCart = await Cart.updateOne({userId:payload.userId,products:products});
             if(updatedCart.acknowledged) {
-                console.log('Cart Updated');
+                //('Cart Updated');
                 addSession({action:`You removed a product of id ${payload.productId} from the cart list`,userId:payload.userId});
                 resolve({status:true, message:'The cart was updated'});
             } else {
@@ -430,31 +469,74 @@ function deleteCart(payload: DeleteCart) {
             }
             
         } else {
-            //console.log(cart)
+            ////(cart)
             addSession({action:`You attempted to remove a product of id ${payload.productId} from the cart list`,userId:payload.userId});
             reject({status:false,message:'You have no items in cart'});
         }
     });
 }
+function setReview(payload: any) {
+    return new Promise((resolve,reject)=>{
+        main()
+        .then(async ()=>{
+            
+            const review = new Review (payload);
+            review.reviewId = crypto.randomBytes(64).toString('hex');
+            await review.save();
+            addSession({action:`Added a review of id ${review.reviewId}`,userId:payload.userId})
+            resolve({status: true, message:'Review Added'});
+        })
+        .catch((err:Error)=>{
+            //(err)
+            addSession({action:'Attempted to add a review',userId:payload.userId})
+            reject({status:false, message:'Operation not performed'});
+        });
+    })
+}
+function getReview() {
+    return new Promise((resolve,reject)=>{
+        main()
+        .then(async ()=>{
+            const reviews = await Review.find();
+            
+            resolve(reviews);
+        })
+        .catch((err:Error)=>{
+            //(err)
+            reject({status:false, message:err.message});
+        });
+    });
+}
+interface GetReview {
+    userId: string;
+    productId: string;
+}
+function getReviewById(payload:any) {
+    return new Promise((resolve, reject)=>{
+        main()
+        .then(async ()=>{
+            var reviews = await Review.find(payload);
+            const reviews_ = JSON.parse(JSON.stringify(reviews));
+            const x:any= []
+            reviews_.forEach(async (review:any)=>{
+                let user = await User.findOne({userId: review.userId});
+                //@ts-ignore
+                review.user = {fullname:`${user.firstname} ${user.lastname}`}
+                x.push(review)
+            });
+            setTimeout(function(){
+                resolve({status:true, message:'Success', reviews:x})
+            },1000)
+            
+        })
+        .catch((err:Error)=>{
+            reject({status:false,message:'Something went wrong',originalMessage:err.message});
+        });
+    });
+}
+//getReview();
+getReviewById({product:'024395bf3209ee5f36ddb609545cfd2f489c359c2001e75a6b263fbd1e2d47c27fe41e66efd0bf44be803504f3ae2f5cc0fb533b6c66ba104920251a510579vc'});
 
-/*
-setCart(myCart)
-.then((state:any)=>{
-  
-})
-.catch((err: Error) =>{
-  
-})
-
-/*
-setNotification(notification)
-.then ((notification:any) =>{
-  console.log(notification)
-})
-.catch((err: Error)=>{
-  console.log(err)
-});
-*/
 const orm = {
   user: User,
   addUser : addUser,
@@ -468,6 +550,9 @@ const orm = {
   getNotifications:getNotifications,
   getCart: getCart,
   setCart: setCart,
+  setReview: setReview,
+  getReview: getReview,
+  getReviewById: getReviewById,
   deleteCart: deleteCart,
   getArrangement:getArrangement,
   setArrangement:setArrangement,
