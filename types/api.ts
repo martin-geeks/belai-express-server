@@ -117,3 +117,9 @@ export interface Review {
     rating:number;
     date: Date;
 }
+export interface Wishlist {
+    wishlistId: string;
+    userId: string;
+    products: string[];
+    date: Date;
+}

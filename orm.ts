@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import {model} from 'mongoose';
-import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel,CartModel,cartSchema,CategoryArrangementModel,categoryArrangementSchema, reviewSchema,ReviewModel} from './schema';
-import {TypeProduct,TypeNotification,TypeCart,TypeCategoryArrangement,TypeCategory, Review as TypeReview} from './types/api';
+import { userSchema, sessionSchema , productSchema, notificationSchema,NotificationModel,CartModel,cartSchema, wishlistSchema, WishlistModel,CategoryArrangementModel,categoryArrangementSchema, reviewSchema,ReviewModel} from './schema';
+import {TypeProduct,TypeNotification,TypeCart,TypeCategoryArrangement,TypeCategory, Review as TypeReview, Wishlist as TypeWishlist} from './types/api';
 const crypto = require('crypto');
 const dotenv =  require('dotenv');
 dotenv.config();
@@ -62,6 +62,7 @@ const Session = mongoose.model('Session',sessionSchema);
 const Product = model<TypeProduct>('Product',productSchema);
 const Notification = model<TypeNotification,NotificationModel>('Notification',notificationSchema)
 const Cart = model<TypeCart,CartModel>('Cart',cartSchema)
+const Wishlist = model<TypeWishlist,WishlistModel>('Wishlist', wishlistSchema)
 const Review = model<TypeReview, ReviewModel>('Review',reviewSchema);
 const categoryArrangement = model<TypeCategoryArrangement>('CategoryArrangement',categoryArrangementSchema);
 //(Notification)
@@ -475,6 +476,77 @@ function deleteCart(payload: DeleteCart) {
         }
     });
 }
+interface WishlistPayload {
+    userId: string;
+    product: string;
+    //wishlistId: string;
+}
+function setWishlist(payload: WishlistPayload) {
+    return new Promise((resolve,reject) =>{
+    main()
+    .then(async ()=>{
+        const checkWishlist = await Wishlist.findOne({userId:payload.userId});
+        console.log(checkWishlist)
+        if(!checkWishlist) {
+            console.log('record not found')
+            const wishlist = new Wishlist(payload);
+            wishlist.products.push(payload.product);
+            console.log(wishlist)
+            await wishlist.save();
+            addSession({action:`Added an item of id ${payload.product} to wishlist`,userId:payload.userId})
+            resolve({status:true, message:' Successfully Added',newList:wishlist});
+        } else {
+            console.log('record found');
+            let products = checkWishlist.products;
+            let checkProduct = products.filter((product: string) => product === payload.product);
+            if(checkProduct.length > 0){
+                addSession({action:`Attempted an item of id ${payload.product} to wishlist`,userId:payload.userId})
+                reject({status:false, message:'The product already in the wishlist'});
+            } else {
+                console.log('OK! ',products)
+                products.push(payload.product);
+                console.log(products)
+                
+                let updateWishlist = await Wishlist.updateOne({userId:payload.userId},{$set:{products:products}});
+                addSession({action:`Added an item of id ${payload.product} to wishlist`,userId:payload.userId})
+                resolve({status:true, message:'Successfully Updated',wishlist:updateWishlist})
+            }
+        }
+    })
+    .catch((err:Error)=>{
+      reject({status:false,message:err.message});
+    });
+  });
+}
+
+function getWishlist(userId: string) {
+    return new Promise((resolve,reject)=>{
+        main()
+        .then(async ()=>{
+            const wishlist = await Wishlist.findOne({userId:userId});
+            if(wishlist){
+                const products:any = []
+                wishlist.products.forEach(async (productId: string)=>{
+                    const product = await getProduct(productId);
+                    products.push(product);
+                });
+                
+                setTimeout(function(){
+                    addSession({action:`Fetched items from wishlist`,userId:userId})
+                    resolve({status: true,count:products.length,products:products, message:'Success', wishlist: wishlist.products});
+                },1000);
+            } else {
+                addSession({action:` fetched items from wishlist`,userId:userId})
+                resolve({status:false,message:'Nothing found'})
+            }
+        })
+        .catch((err:Error)=>{
+            addSession({action:`Attempted to fetch items from wishlist`,userId:userId})
+            reject({status:false,message:'Something went wrong'})
+        });
+    });
+}
+
 function setReview(payload: any) {
     return new Promise((resolve,reject)=>{
         main()
@@ -550,6 +622,8 @@ const orm = {
   getNotifications:getNotifications,
   getCart: getCart,
   setCart: setCart,
+  setWishlist:setWishlist,
+  getWishlist:getWishlist,
   setReview: setReview,
   getReview: getReview,
   getReviewById: getReviewById,

@@ -460,6 +460,43 @@ app.delete('/cart',authenticateToken,(req: Request,res: Response)=>{
   })
   
 });
+app.post('/wishlist',authenticateToken,(req: Request,res: Response)=>{
+    //@ts-ignore
+    orm.setWishlist({userId:req.userId,product:req.body.productId})
+    .then((responseData:any)=>{
+        console.log(res)
+        res.json(responseData)
+    })
+    .catch((err:Error)=>{
+        console.log(err)
+        res.status(444).json(err);
+    })
+});
+app.get('/wishlist',authenticateToken,(req: Request,res: Response)=>{
+    //@ts-ignore
+    orm.getWishlist(req.userId)
+    .then((responseData:any)=>{
+        
+        res.json(responseData)
+    })
+    .catch((err:Error)=>{
+        res.status(404).send();
+    })
+});
+app.delete('/wishlist',authenticateToken,(req: Request,res: Response)=>{
+    //console.log(req.userId,)
+    //@ts-ignore
+    orm.setWishlist({userId:req.userId,product:req.param.productId})
+    .then((responseData:any)=>{
+        
+        res.json(responseData)
+    })
+    .catch((err:Error)=>{
+        
+        res.status(404).send();
+    })
+});
+
 app.post('/reviews',authenticateToken,(req: Request,res: Response)=>{
     //(req.body)
     //@ts-ignore
