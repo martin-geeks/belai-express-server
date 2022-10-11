@@ -109,11 +109,16 @@ export interface CategoryArrangementMethods {
   rearrange(): ()=> boolean;
   resetArrangement(): ()=> boolean;
 }
+interface ReviewText {
+    content:string;
+    photos:string;
+    videos: string;
+}
 export interface Review {
     reviewId: string;
     userId:string;
     product:string;
-    review:string;
+    review:ReviewText;
     rating:number;
     date: Date;
 }

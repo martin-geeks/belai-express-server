@@ -18,14 +18,17 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const fileupload = require('express-fileupload');
 
 dotenv.config();
 const corsOptions  = {
   credentials: true,
 }
 const app: Express = express();
-app.use(cors(corsOptions));
-app.use(session({secret:'test'}));
+app.use(fileupload());
+app.use(cors());
+app.use(session({secret:'test',resave:true,saveUninitialized: true,
+  cookie: { secure: true }}));
 app.use('/', express.static(path.join(__dirname,'build')));
 app.use(express.static('build'));
 app.use(express.static('assets'));
@@ -40,7 +43,12 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 const port = process.env.PORT || 3001
-
+fs.readdir('./public/wishlist',function(err:Error,files:any){
+    if(err){
+        console.log(err)
+    }
+    console.log(files)
+})
 const generateAccessToken = (param:object,expire: string) => {
     return jwt.sign(param, process.env.TOKEN_SECRET, { expiresIn: expire});
 }
@@ -68,6 +76,20 @@ function authenticateToken(req:Request,res:Response,next:any){
     */
   })
     
+}
+function generateAssetsPath(path: string){
+        try {
+  // first check if the directory already exists
+        if (!fs.existsSync(`./public/${path}`)) {
+            //@ts-ignore
+            fs.mkdirSync(`./public/${path}`,{ recursive: true })
+                //console.log('Directory is created.')
+            } else {
+                //console.log('Directory already exists.')
+            }
+    } catch (err) {
+        console.log(err)
+    }
 }
 app.get('*', function(req:Request, res:Response, next:any) {
   console.log(req.method,':',req.path)
@@ -202,14 +224,19 @@ app.post('/create-account',async (req: Request,res: Response) => {
   //(email)
    orm.checkUser({email:email.email})
   .then(async (data:any)=>{
-      await sendVerificationCode(req.body.data.email,OTP);
+   
       if(data.status !== true){
+          await sendVerificationCode(req.body.data.email,OTP);
          res.cookie('belaiExpressVerify',{email:req.body.data.email,otp:OTP,step:1},{
     maxAge: 86400 * 1000,
     httpOnly: true,
     secure: false
-  });
-          res.json({status:true})
+  });   
+        //@ts-ignore
+        //res.session['belaiExpressVerify']= {email:req.body.data.email,otp:OTP, step:2};
+        //@ts-ignore
+        //console.log(req.session)
+          res.json({status:true,code:OTP})
       } else {
         res.json({status:false,message:'Email exists. Try another one'});
       }
@@ -221,7 +248,7 @@ app.post('/create-account',async (req: Request,res: Response) => {
   });
   } else {
     const user = req.body.fields;
-    let p = req.cookies['belaiExpressVerify']
+    let p = {email:user['email']}
     var token = crypto.randomBytes(64).toString('hex');
     
     let userExistence:any = await orm.checkUser({username:user['username']});
@@ -238,20 +265,34 @@ app.post('/create-account',async (req: Request,res: Response) => {
         email: user.username,
         password: user.password
       }
+      var MyResponse:any = null
       var addr = req.socket.remoteAddress || '';
           try{
       let info = await ipinfoWrapper.lookupIp(addr.split(':')[1]);
       userObject.location = `${info.city}, ${info.country} [${info.countryCode}]`;
          userObject.email = p['email'];
          userObject.password = user['password'];
-            let u = await orm.addUser(userObject);
+        let u = await orm.addUser(userObject);
             let user2 : any= await orm.getUser({username:userObject.username});
-              let userData:any = {status:true,email:user2.email,username:user2.username,userId:user2.userId,photo:user2.photo,fullname:`${user2.firstname} ${user2.lastname}`, verified:true}
-                res.cookie('belaiExpress',userData,{
+            //console.log('FROM DB: ',user2)
+              let userData:any = {
+              status:true,
+              email:user2.user.email,
+              username:user2.user.username,
+              userId:user2.user.userId,
+              photo:user2.user.photo,
+              token:generateAccessToken({userId:user2.user.userId},'1d'),
+              fullname:`${user2.user.firstname} ${user2.user.lastname}`,
+              verified:true
+            }
+               /* res.cookie('belaiExpress',userData,{
     maxAge: 86400 * 1000,
     httpOnly: true,
     secure: false
-    });
+    });*/
+                  //console.log(userData);
+                //console.log('USER SENT 1');
+                MyResponse = userData;
                 res.json(userData);
           } catch(err : any) {
             
@@ -259,34 +300,29 @@ app.post('/create-account',async (req: Request,res: Response) => {
             userObject.email = p['email'];
             userObject.password = user['password'];
             orm.addUser(userObject)
-            .then(async ()=>{
+            .then(async (createdUser:any)=>{
             const user2: any = await orm.getUser({username:userObject.username});
             
-              let userData = {status:true,email:user2.email,username:user2.username,userId:user2.userId,photo:user2.photo,fullname:`${user2.firstname} ${user2.lastname}`, verified:true}
-                res.cookie('belaiExpress',userData,{
+              let userData = {status:true,email:user2.email,username:user2.username,userId:user2.userId,photo:user2.photo,token:generateAccessToken({userId:user2.userId},'1d'),fullname:`${user2.firstname} ${user2.lastname}`, verified:true}
+                /*res.cookie('belaiExpress',userData,{
     maxAge: 86400 * 1000,
     httpOnly: true,
     secure: false
-    });
+});             */
+                
+                //console.log(userData);
+                //console.log('USER SENT 2');
+                MyResponse = userData;
                 res.json(userData);
               
             })
             . catch ((err: Error)=>{
-              //(444,err)
+             //console.log('Error Found: ',err)
               res.json(err)
             })
-            /*
-            let user2: any = await orm.getUser({username:userObject.username});
-              let userData : any= {status:true,email:user2.email,username:user2.username,userId:user2.userId,photo:user2.photo,fullname:`${user2.firstname} ${user2.lastname}`, verified:true}
-                res.cookie('belaiExpress',userData,{
-    maxAge: 86400 * 1000,
-    httpOnly: true,
-    secure: false
-    });
-                res.json(userData);
-          */
+          
           }
-    
+    //console.log(MyResponse,'Completed')
     }
     
     
@@ -464,11 +500,11 @@ app.post('/wishlist',authenticateToken,(req: Request,res: Response)=>{
     //@ts-ignore
     orm.setWishlist({userId:req.userId,product:req.body.productId})
     .then((responseData:any)=>{
-        console.log(res)
+        
         res.json(responseData)
     })
     .catch((err:Error)=>{
-        console.log(err)
+        
         res.status(444).json(err);
     })
 });
@@ -484,9 +520,9 @@ app.get('/wishlist',authenticateToken,(req: Request,res: Response)=>{
     })
 });
 app.delete('/wishlist',authenticateToken,(req: Request,res: Response)=>{
-    //console.log(req.userId,)
+    
     //@ts-ignore
-    orm.setWishlist({userId:req.userId,product:req.param.productId})
+    orm.deleteWishlist({userId:req.userId,product:req.body.productId})
     .then((responseData:any)=>{
         
         res.json(responseData)
@@ -497,16 +533,40 @@ app.delete('/wishlist',authenticateToken,(req: Request,res: Response)=>{
     })
 });
 
-app.post('/reviews',authenticateToken,(req: Request,res: Response)=>{
-    //(req.body)
+app.post('/reviews',authenticateToken,async(req: Request,res: Response)=>{
     //@ts-ignore
-    orm.setReview({userId:req.userId,product:req.body.product,review:req.body.review,rating:req.body.rating,date: new Date()})
+    generateAssetsPath(`reviews/videos/${req.userId}`);generateAssetsPath(`reviews/pictures/${req.userId}`);
+    //@ts-ignore
+    const video:any = req.files.video;
+    //@ts-ignore
+    const photo:any = req.files.photo;
+    //@ts-ignore
+    const newFileName:any = `./public/reviews/videos/${req.userId}/${req.body.product}.${req.files.video.mimetype.split('/')[1]}`;
+    //@ts-ignore
+    const newFileNameImage:any = `./public/reviews/pictures/${req.userId}/${req.body.product}.${req.files.photo.mimetype.split('/')[1]}`;
+    //@ts-ignore
+    const urlForVideo = `${req.userId}/${req.body.product}.${req.files.video.mimetype.split('/')[1]}`;
+    //@ts-ignore
+    const urlForPhoto = `${req.userId}/${req.body.product}.${req.files.photo.mimetype.split('/')[1]}`;
+    /*video.mv(`./public/wishlist/videos/${req.userId}/${req.body.product}.mp4`,(err:Error)=>{
+        if(err) {
+            console.log(err)
+        }
+        console.log('success')
+    })*/
+    
+    //@ts-ignore
+   orm.setReview({userId:req.userId,product:req.body.product,review:{content:req.body.review,video:urlForVideo, photo:urlForPhoto},rating:req.body.rating,date: new Date()})
     .then((response:any)=>{
+         fs.createWriteStream(newFileName).write(video.data, function (err:Error){console.log(err)})
+         fs.createWriteStream(newFileNameImage).write(photo.data, function (err:Error){console.log(err)})
         res.json(response);
     })
     .catch((err:Error)=>{
+        //console.log(err)
         res.status(404).send();
     });
+    //res.status(401).send();
 });
 app.post('/reviews/anonymous',(req: Request,res: Response)=>{
     //(req.body)
@@ -528,6 +588,15 @@ app.get('/reviews',(req: Request,res: Response)=>{
     .catch((err:Error)=>{
         res.status(404).send();
     });
+});
+app.get('/reviews/assets',(req: Request,res: Response)=>{
+   
+    //console.log('data',req.query)
+    if(req.query.type === 'image') {
+        res.sendFile(path.resolve('public/reviews/pictures/'+req.query.path))
+    } else {
+         res.sendFile(path.resolve('public/reviews/videos/'+req.query.path))
+    }
 });
 app.get('/reviews-by-id',(req: Request,res: Response)=>{
     orm.getReviewById(req.query)

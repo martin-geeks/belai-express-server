@@ -87,6 +87,7 @@ async function demoProduct(){
   });
 }
 function addUser(userData:any){
+    //console.log(userData)
   return new Promise((resolve,reject)=>{
     
   main()
@@ -96,14 +97,14 @@ function addUser(userData:any){
      if(userData.userId) {
          
      } else {
-         userData.userData.userId = crypto.randomBytes(64).toString('hex');
+         userData.userId = crypto.randomBytes(64).toString('hex');
      }
-         
+       //console.log(userData)
        const user = new User(userData);
        await user.save();
        const  session = new Session({action:'Created an account',user:user.userId});
        await session.save();
-      
+      resolve({status: true,message:'Success',userData});
   })
   .catch ((err: Error) => {
     //(1111,err)
@@ -518,7 +519,6 @@ function setWishlist(payload: WishlistPayload) {
     });
   });
 }
-
 function getWishlist(userId: string) {
     return new Promise((resolve,reject)=>{
         main()
@@ -546,13 +546,36 @@ function getWishlist(userId: string) {
         });
     });
 }
-
-function setReview(payload: any) {
+interface DeleteWishlist {
+    userId:string;
+    product:string;
+}
+function deleteWishlist(payload: DeleteWishlist) {
+    return new Promise ((resolve,reject)=>{
+        main()
+        .then(async ()=>{
+            const wishlist = await Wishlist.findOne({userId:payload.userId});
+            if(wishlist) {
+                const products = wishlist.products.filter((productId: string)=> productId !== payload.product);
+                let updateWishlist = await Wishlist.updateOne({userId:payload.userId},{$set:{products:products}});
+                resolve({status:true, message:'Success',update:updateWishlist})
+            } else {
+                reject({status:false, message:'Not Success'})
+            }
+        })
+        .catch((err:Error)=>{
+            reject({status:false,message:'Something went wrong',originalMessage:err.message});
+        });
+    });
+}
+function setReview(payload: any,file=null) {
+    console.log(payload)
     return new Promise((resolve,reject)=>{
         main()
         .then(async ()=>{
             
             const review = new Review (payload);
+            
             review.reviewId = crypto.randomBytes(64).toString('hex');
             await review.save();
             addSession({action:`Added a review of id ${review.reviewId}`,userId:payload.userId})
@@ -561,7 +584,7 @@ function setReview(payload: any) {
         .catch((err:Error)=>{
             //(err)
             addSession({action:'Attempted to add a review',userId:payload.userId})
-            reject({status:false, message:'Operation not performed'});
+            reject({status:false, message:'Operation not performed',originalMessage:err});
         });
     })
 }
@@ -590,6 +613,7 @@ function getReviewById(payload:any) {
             var reviews = await Review.find(payload);
             const reviews_ = JSON.parse(JSON.stringify(reviews));
             const x:any= []
+            console.log(reviews_)
             reviews_.forEach(async (review:any)=>{
                 let user = await User.findOne({userId: review.userId});
                 //@ts-ignore
@@ -607,7 +631,7 @@ function getReviewById(payload:any) {
     });
 }
 //getReview();
-getReviewById({product:'024395bf3209ee5f36ddb609545cfd2f489c359c2001e75a6b263fbd1e2d47c27fe41e66efd0bf44be803504f3ae2f5cc0fb533b6c66ba104920251a510579vc'});
+/*getReviewById({product:'024395bf3209ee5f36ddb609545cfd2f489c359c2001e75a6b263fbd1e2d47c27fe41e66efd0bf44be803504f3ae2f5cc0fb533b6c66ba104920251a510579vc'});*/
 
 const orm = {
   user: User,
@@ -626,6 +650,7 @@ const orm = {
   getWishlist:getWishlist,
   setReview: setReview,
   getReview: getReview,
+  deleteWishlist:deleteWishlist,
   getReviewById: getReviewById,
   deleteCart: deleteCart,
   getArrangement:getArrangement,

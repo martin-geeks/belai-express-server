@@ -7,7 +7,7 @@ const reviewSchema = new Schema<Review,{}>({
     reviewId: {type:String, required:true ,default:crypto.randomBytes(64).toString('hex')},
     userId: {type:String, required:true},
     product: {type: String,required: true},
-    review: {type: String,required: true},
+    review: Object,
     rating: {type:Number,required:true},
     date: {type:Date, required:true, default:new Date}
 })
